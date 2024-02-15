@@ -1,0 +1,9 @@
+.sidebar-header {
+    text-align: center;
+}
+
+.brand img {
+    max-width: 40%;
+    height: auto;
+    margin: 10px 45px; /* Adjust margin as needed */
+}

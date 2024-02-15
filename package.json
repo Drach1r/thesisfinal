@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "bootstrap": "^5.3.1",
+    "xlsx-js-style": "^1.2.0",
+    "xlsx-style": "^0.8.13"
+  }
+}

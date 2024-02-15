@@ -1,0 +1,64 @@
+
+  .table-container {
+    width: 1000px; /* Adjust the width as needed */
+    overflow-x: auto;
+    margin-bottom: 20px; /* Optional: Add some bottom margin to the container */
+  }
+
+  
+.sidebar a.active {
+  background-color: #007bff; /* Blue color, change as per your preference */
+  color: #fff; /* Text color for the active link */
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #f4f4f4; /* Add a background color for the entire page */
+}
+
+.header {
+  background-color: #10f661;
+  color: #fff;
+  padding: 10px;
+  text-align: center;
+}
+
+#dashboard-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #fff; /* Add a background color for the dashboard container */
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Add a subtle box shadow */
+  padding: 20px;
+  margin-top: 20px;
+}
+
+#chart-container {
+  margin-top: 20px;
+}
+
+#footer {
+  margin-top: 20px;
+  padding: 10px;
+  text-align: center;
+  background-color: #333;
+  color: #fff;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  #dashboard-container {
+      padding: 10px; /* Adjust padding for smaller screens */
+  }
+}
+
+.edit-action {
+  color: green;
+  /* Green color for Edit */
+}
+
+.delete-action {
+  color: red;
+  /* Red color for Delete */
+}
