@@ -20,10 +20,7 @@ include 'sidebar.php';
     </div>
 
     <?php
-    // Assuming you have a 'member' table with 'id', 'firstname', and 'lastname' columns
-    // Assuming you have a 'carabaos' table with 'id' and 'name' columns
-    // Assuming you have a 'produced' table with 'member_id' (foreign key to 'id' in 'member' table),
-    // 'carabao_id' (foreign key to 'id' in 'carabaos' table), 'actual', and 'date' columns
+
 
     // Get distinct member IDs
     $queryMembers = "SELECT DISTINCT p.member_id, m.firstname, m.lastname FROM produced p
@@ -46,7 +43,7 @@ include 'sidebar.php';
     echo '<th>Carabao Name</th>';
     echo '<th>Weekly Transactions Count</th>';
     echo '<th>Weekly Actual Amount</th>';
-    echo '<th>Action</th>'; // Added this column for the action
+    echo '<th>Action</th>';
     echo '</tr>';
     echo '</thead>';
     echo '<tbody>';
@@ -69,7 +66,8 @@ include 'sidebar.php';
         echo '<td>' . $rowWeekly['carabao_name'] . '</td>';
         echo '<td>' . $rowWeekly['weekly_count'] . '</td>';
         echo '<td>' . $rowWeekly['weekly_actual'] . '</td>';
-        echo '<td><button onclick="printReceipt(' . $memberID . ')">Print Receipt</button></td>'; // Added action column with a button
+        echo '<td><a href="transhis.php?member_id=' . $memberID . '">Transactions</a></td>';
+
         echo '</tr>';
 
         $count++;
@@ -84,25 +82,6 @@ include 'sidebar.php';
     echo '</div>';
     echo '</section>';
     ?>
-    <script>
-        function printReceipt(memberID) {
-            // Fetch and print the transaction details using AJAX
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    // Display the receipt in a new window or modal
-                    var receiptContent = this.responseText;
-                    var printWindow = window.open('', '_blank');
-                    printWindow.document.write(receiptContent);
-                    printWindow.document.close();
 
-                    // Print the content
-                    printWindow.print();
-                }
-            };
-            xhttp.open('GET', 'print_receipt.php?member_id=' + memberID, true);
-            xhttp.send();
-        }
-    </script>
 
 </article>

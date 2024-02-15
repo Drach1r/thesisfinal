@@ -1,4 +1,4 @@
-<!-- print_receipt.php -->
+
 
 <?php
 include 'db_connect.php';
