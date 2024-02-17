@@ -273,15 +273,11 @@ $allowedLinks = array(
                 <?php endif; ?>
                 <?php if ($userType == 5) : ?>
                     <li class="">
-                        <a href="index.php">
-                            <i class="fa fa-home"></i> Dashboard
+                        <a href="book_dash.php">
+                            <i class="fa fa-home"></i> Bookkeeper Dashboard
                         </a>
                     </li>
-                    <li class="">
-                        <a href="users.php">
-                            <i class="fa fa-archive"></i> Manage Users
-                        </a>
-                    </li>
+
                     <li class=" ">
                         <a href="">
                             <i class="fa fa-users"></i> Members
@@ -302,20 +298,115 @@ $allowedLinks = array(
                     </li>
                     <li class="  ">
                         <a href="">
-                            <i class="fa fa-clipboard"></i> Production
+                            <i class="fa fa-clipboard"></i> Inventory
+                            <i class="fa arrow"></i>
+                        </a>
+                        <ul>
+                            <li lass="">
+                                <a href="rawmats.php">
+                                    <i class="fa fa-clipboard"></i> Raw Materials Inventory
+                                </a>
+                            </li>
+
+                            <li class="">
+                                <a href="stock.php">
+                                    <i class="fa fa-clipboard"></i> End Products Inventory
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li>
+                        <a href="payroll.php">
+                            <i class="fa fa-clipboard"></i> Payroll
+                        </a>
+                    </li>
+                    <li>
+                        <a href="employee.php">
+                            <i class="fa fa-clipboard"></i> Employee
+                        </a>
+                    </li>
+                    <li class="">
+                        <a href="index.php">
+                            <i class="fa fa-home"></i> Admin Dashboard
+                        </a>
+                    </li>
+                    <li class="">
+                        <a href="users.php">
+                            <i class="fa fa-user"></i> Manage Users
+                        </a>
+                    </li>
+                    <li class="">
+                        <a href="pending_mem.php">
+                            <i class="fa fa-group"></i> Manage Members
+                        </a>
+                    </li>
+
+                    <li class="">
+                        <a href="optimization.php">
+                            <i class="fa fa-group"></i> Optimization
+                        </a>
+                    </li>
+                    <li class="">
+                        <a href="prod_dash.php">
+                            <i class="fa fa-home"></i> Production Dashboard
+                        </a>
+                    </li>
+                    <li class="  ">
+                        <a href="">
+                            <i class="fa fa-archive"></i> Receiving Raw Products
                             <i class="fa arrow"></i>
                         </a>
                         <ul>
                             <li class="">
-                                <a href="produced.php">
-                                    <i class="fa fa-archive"></i> Recieving Milk Produced
+                                <a href="produce.php">
+                                    <i class="fa fa-archive"></i> Receiving Milk Produced
                                 </a>
                             </li>
                             <li class="">
-                                <a href="production.php">
-                                    <i class="fa fa-archive"></i> Produce
+                                <a href="receiving.php">
+                                    <i class="fa fa-truck"></i> Purchase Raw Materials
                                 </a>
                             </li>
+
+
+                        </ul>
+                    </li>
+
+                    <li class="  ">
+                        <a href="">
+                            <i class="fa-solid fa-industry"></i> Production of Products
+                            <i class="fa arrow"></i>
+                        </a>
+                        <ul>
+                            <li class="">
+                                <a href="production.php">
+                                    <i class="fa fa-archive"></i> Producing End Products
+                                </a>
+                            </li>
+
+
+                        </ul>
+                    </li>
+
+                    <li class="  ">
+                        <a href="">
+                            <i class="fa fa-clipboard"></i> Product Lists
+                            <i class="fa arrow"></i>
+                        </a>
+                        <ul>
+                            <li class="">
+                                <a href="rawmaterials.php">
+                                    <i class="fa-solid fa-box"></i> Rawmaterials
+                                </a>
+                            </li>
+                            <li class="">
+                                <a href="product.php">
+                                    <i class="fa-solid fa-box"></i> End Product
+                                </a>
+                            </li>
+
+
                         </ul>
                     </li>
                     <li class="  ">
@@ -324,30 +415,25 @@ $allowedLinks = array(
                             <i class="fa arrow"></i>
                         </a>
                         <ul>
-
-                            <li class="">
-                                <a href="product.php">
-                                    <i class="fa fa-book"></i> Product List
-                                </a>
-                            </li>
-
-                            <li class="">
-                                <a href="receiving.php">
-                                    <i class="fa fa-truck"></i> Receiving
-                                </a>
-                            </li>
-                            <li>
+                            <li lass="">
                                 <a href="rawmats.php">
-                                    <i class="fa fa-clipboard"></i> Raw Materials
+                                    <i class="fa fa-clipboard"></i> Raw Materials Inventory
                                 </a>
                             </li>
-                            <li>
+
+                            <li class="">
                                 <a href="stock.php">
-                                    <i class="fa fa-clipboard"></i> Inventory
+                                    <i class="fa fa-clipboard"></i> End Products Inventory
                                 </a>
                             </li>
                         </ul>
                     </li>
+                    <li class="">
+                        <a href="sales_dash.php">
+                            <i class="fa fa-home"></i> Sales Dashboard
+                        </a>
+                    </li>
+
                     <li class="  ">
                         <a href="">
                             <i class="fa fa-shopping-cart"></i> Sales
@@ -364,23 +450,12 @@ $allowedLinks = array(
                                     Add Sale
                                 </a>
                             </li>
-
                             <!-- Add other sales-related links here -->
                         </ul>
                     </li>
-                    <li class="">
-                        <a href="payroll.php">
-                            <i class="fa fa-clipboard"></i> Payroll
-                        </a>
-                    </li>
-                    <li class="">
-                        <a href="employee.php">
-                            <i class="fa fa-clipboard"></i> Employee
-                        </a>
-                    </li>
-                    <li class="">
-                        <a href="supplier.php">
-                            <i class="fa fa-archive"></i> Supplier
+                    <li>
+                        <a href="stock.php">
+                            <i class="fa fa-clipboard"></i> End Products Inventory
                         </a>
                     </li>
                     <li class="">
@@ -388,11 +463,7 @@ $allowedLinks = array(
                             <i class="fa fa-users"></i> Customer List
                         </a>
                     </li>
-                    <li class="">
-                        <a href="pending_mem.php">
-                            <i class="fa fa-clipboard"></i> Memb
-                        </a>
-                    </li>
+
                 <?php endif; ?>
             </ul>
         </nav>

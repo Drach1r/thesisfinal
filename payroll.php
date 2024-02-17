@@ -13,6 +13,10 @@ include 'sidebar.php';
                 <div class="col-sm-6">
                     <h3 class="title">
                         Payout Slips
+
+                        <a href="monthlyrecieved.php" class="btn btn-primary btn-sm rounded-s">
+                            Monthly Recieved
+                        </a>
                     </h3>
                 </div>
             </div>

@@ -2,7 +2,7 @@
 // Include necessary files and check user access
 include 'header.php';
 include 'sidebar.php';
-$allowedUserTypes = array(3);
+$allowedUserTypes = array(3, 5);
 checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to access this page.');
 
 
@@ -105,7 +105,8 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
                                         <th>Sales ID</th>
                                         <th>Customer</th>
                                         <th>Total Amount</th>
-                                        <th>Action</th>
+                                        <th>Delete</th>
+                                        <th>Transaction</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -127,7 +128,7 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="SaleID" value="' . $salesRow['SaleID'] . '">
                 <button type="submit" onclick="return confirm(\'Are you sure you want to delete this sale?\')">Delete</button>
-                <button type="submit" formaction="print_sales.php" formtarget="_blank">Print</button>
+                <button type="submit"  class="btn btn-primary btn-sm rounded-s"> formaction="print_sales.php" formtarget="_blank">View</button>
             </form>
           </td>';
                                         echo '</tr>';

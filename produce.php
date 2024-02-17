@@ -260,23 +260,31 @@ WHERE (p.actual != 0) AND (m.firstname LIKE '%$search%' OR m.lastname LIKE '%$se
                             <br>
                             <br>
                             <?php
-
-                            $query = "SELECT actual AS daily_milk_received FROM produced WHERE date = (SELECT MAX(date) FROM produced)";
+                            $query = "SELECT actual AS daily_milk_received 
+FROM produced 
+JOIN (SELECT MAX(date) AS max_date FROM produced) AS max_prod 
+ON produced.date = max_prod.max_date";
 
                             $result = mysqli_query($conn, $query);
 
                             if ($result) {
-                                $row = mysqli_fetch_assoc($result);
-                                $dailyMilkReceived = $row['daily_milk_received'];
+                                // Initialize total variable
+                                $totalDailyMilkReceived = 0;
+
+                                // Fetch all rows and sum up the values
+                                while ($row = mysqli_fetch_assoc($result)) {
+                                    $totalDailyMilkReceived += $row['daily_milk_received'];
+                                }
                             } else {
                                 // Handle the error if the query fails
-                                $dailyMilkReceived = "Error fetching daily milk received";
+                                $totalDailyMilkReceived = "Error fetching daily milk received";
                             }
                             ?>
 
+
                             <h3>Daily Received:</h3>
 
-                            <div class="form-group" style="float: right; margin-right: 250px"> <strong>Daily Total: <?php echo $dailyMilkReceived; ?>L</strong></div>
+                            <div class="form-group" style="float: right; margin-right: 250px"> <strong>Daily Total: <?php echo $totalDailyMilkReceived; ?>L</strong></div>
 
 
 

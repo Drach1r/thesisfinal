@@ -3,17 +3,10 @@ include 'header.php';
 include 'sidebar.php';
 include 'db_connect.php';
 
-$query = "SELECT actual AS daily_milk_received FROM produced WHERE date = (SELECT MAX(date) FROM produced)";
 
-$result = mysqli_query($conn, $query);
 
-if ($result) {
-    $row = mysqli_fetch_assoc($result);
-    $dailyMilkReceived = $row['daily_milk_received'];
-} else {
-    // Handle the error if the query fails
-    $dailyMilkReceived = "Error fetching daily milk received";
-}
+
+
 // Assuming you have a connection to the database in db_connect.php
 $query = "SELECT SUM(actual) AS monthly_milk_received FROM produced WHERE MONTH(date) = MONTH(NOW())";
 
@@ -38,13 +31,34 @@ if ($result) {
 
 
 <article class="content item-editor-page">
+    <?php
+    $query = "SELECT actual AS daily_milk_received 
+FROM produced 
+JOIN (SELECT MAX(date) AS max_date FROM produced) AS max_prod 
+ON produced.date = max_prod.max_date";
+
+    $result = mysqli_query($conn, $query);
+
+    if ($result) {
+        // Initialize total variable
+        $totalDailyMilkReceived = 0;
+
+        // Fetch all rows and sum up the values
+        while ($row = mysqli_fetch_assoc($result)) {
+            $totalDailyMilkReceived += $row['daily_milk_received'];
+        }
+    } else {
+        // Handle the error if the query fails
+        $totalDailyMilkReceived = "Error fetching daily milk received";
+    }
+    ?>
     <div class="col-xl-3 col-md-4 mb-4 ">
         <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Daily Milk Received</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $dailyMilkReceived; ?>L</div>
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1"> Daily Milk Received</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $totalDailyMilkReceived; ?>L</div>
                     </div>
                     <i class="fa-solid fa-bottle-droplet" style="font-size: 1em;"></i>
                     <div class="col-auto"></div>
@@ -52,6 +66,7 @@ if ($result) {
             </div>
         </div>
     </div>
+
     <div class="col-xl-3 col-md-4 mb-4 ">
         <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">

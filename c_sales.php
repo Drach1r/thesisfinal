@@ -2,7 +2,7 @@
 include 'header.php';
 include 'sidebar.php';
 include 'db_connect.php';
-$allowedUserTypes = array(3);
+$allowedUserTypes = array(3, 5);
 
 checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to access this page.');
 
@@ -179,7 +179,7 @@ function generateSaleID($conn)
                 <div style="margin: 20px;" class="form-group row">
                     <div class="form-group col-xs-2">
                         <label for="Quantity">Quantity:</label>
-                        <input type="number" class="form-control" name="Quantity" id="Quantity" value="1">
+                        <input type="number" class="form-control" name="Quantity" id="Quantity" value="0">
                     </div>
                     <div class="form-group col-xs-2">
                         <label for="pack">Pack:</label>
@@ -279,29 +279,39 @@ function generateSaleID($conn)
     });
 
     function updateAvailableQuantity() {
-        var totalQuantityAdded = 1; // Initialize with 1 to account for the new quantity
+        var maxAvailableQuantity = null; // Initialize maximum available quantity as null
 
-        // Iterate through the quantities of items already added to the cart
-        $('input[name="quantities[]"]').each(function() {
-            totalQuantityAdded += parseInt($(this).val());
+        // Iterate through each product
+        $('select[name="product_id"]').each(function() {
+            var productId = $(this).val(); // Get the product ID
+            var totalQuantityAdded = 0; // Initialize total quantity added to 0 for each product
+
+            // Iterate through the quantities of items already added to the cart for the current product
+            $('input[name="quantities[]"][data-product-id="' + productId + '"]').each(function() {
+                totalQuantityAdded += parseInt($(this).val());
+            });
+
+            // Get the initial available quantity for the current product
+            var initialAvailableQuantity = parseInt($('input[name="available_quantity"][data-product-id="' + productId + '"]').val());
+
+            // Calculate the available quantity for the current product
+            var availableQuantity = initialAvailableQuantity - totalQuantityAdded;
+
+            // Update the maximum available quantity if it's null or greater than the available quantity for the current product
+            if (maxAvailableQuantity === null || availableQuantity < maxAvailableQuantity) {
+                maxAvailableQuantity = availableQuantity;
+            }
         });
 
-        // Get the quantity of the item being added to the cart
-        var newQuantity = parseInt($('#Quantity').val());
-
-        // Subtract the total quantity added from the available quantity, excluding the new quantity
-        var availableQuantity = parseInt($('input[name="available_quantity"]').val()) - (totalQuantityAdded - newQuantity);
-
-        // Return the updated available quantity without updating the field
-        return availableQuantity;
+        // Return the maximum available quantity
+        return maxAvailableQuantity;
     }
-
 
     function addToCart() {
         // Get the selected product ID, name, quantity, pack, measure_and_unit, and price
         var productId = $('#product_id').val();
         var productName = $('#product_id option:selected').text();
-        var quantity = $('#Quantity').val();
+        var quantity = parseInt($('#Quantity').val()); // Parse the quantity to an integer
         var pack = $('#pack').val();
         var measureAndUnit = $('#measure_and_unit').val();
         var price = $('#price').val();
@@ -309,8 +319,21 @@ function generateSaleID($conn)
         // Get the available quantity
         var availableQuantity = updateAvailableQuantity();
 
-        // Check if quantity exceeds available quantity or if quantity is less than or equal to 0
-        if (parseInt(quantity) <= 0 || parseInt(quantity) > availableQuantity) {
+        // Calculate the total quantity in the cart after adding the new item
+        var totalQuantityAdded = quantity;
+        $('input[name="quantities[]"]').each(function() {
+            totalQuantityAdded += parseInt($(this).val());
+        });
+
+        // Check if the total quantity in the cart exceeds the initial available quantity
+        var initialAvailableQuantity = parseInt($('input[name="available_quantity"]').val());
+        if (totalQuantityAdded > initialAvailableQuantity) {
+            alert('Total quantity in the cart exceeds initial available quantity.');
+            return;
+        }
+
+        // Check if the quantity is negative
+        if (quantity <= 0) {
             alert('Please enter a valid quantity.');
             return;
         }
@@ -333,11 +356,11 @@ function generateSaleID($conn)
         updateTotalAmount();
 
         // Update the available quantity input field
-        $('input[name="available_quantity"]').val(availableQuantity);
+        $('input[name="available_quantity"]').val(availableQuantity - totalQuantityAdded);
 
         // Clear the input fields
         $('#product_id').val('');
-        $('#Quantity').val('');
+        $('#Quantity').val(''); // Reset to empty value
         $('#pack').val('');
         $('#measure_and_unit').val('');
         $('#price').val('');

@@ -17,26 +17,26 @@ include 'sidebar.php';
         </div>
 
         <?php
-
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
             $name = $_POST['c_name'];
             $contact = $_POST['c_phone'];
             $address = $_POST['c_address'];
             $email = $_POST['email'];
+            $tin = $_POST['tin']; // Assuming the input field name is "tin_number"
             $createdAt = date('Y-m-d H:i:s');  // Use current timestamp
 
-            $stmt = $conn->prepare("INSERT INTO customers (Name, Phone, Address, Email, createdAt) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssss", $name, $contact, $address, $email, $createdAt);
+            $stmt = $conn->prepare("INSERT INTO customers (Name, Phone, Address, Email, tin, createdAt) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ssssss", $name, $contact, $address, $email, $tin, $createdAt);
             if ($stmt->execute()) {
                 echo '<div class="alert alert-success" role="alert">Customer created successfully.</div>';
             } else {
                 echo '<div class="alert alert-danger" role="alert">Error creating customer: ' . $stmt->error . '</div>';
             }
 
-
             $stmt->close();
         }
+
+
         ?>
 
 
@@ -63,6 +63,12 @@ include 'sidebar.php';
                     <div class="form-group col-xs-4">
                         <label for="address">Address</label>
                         <input type="text" class="form-control" name="c_address" id="address" placeholder="Enter Address" required value="">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="form-group col-xs-4">
+                        <label for="tin">TIN</label>
+                        <input type="number" class="form-control" name="tin" id="tin" placeholder="Enter TIN" required value="">
                     </div>
                 </div>
 
