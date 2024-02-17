@@ -47,10 +47,11 @@ function generateSaleID($conn)
             </div>
         </div>
     </div>
-
     <?php
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Assuming $conn is your database connection
+
         // Get data from the form
         $saleID = $_POST['SaleID'];
         $customerID = $_POST['customer'];
@@ -84,29 +85,33 @@ function generateSaleID($conn)
 
             for ($i = 0; $i < $length; $i++) {
                 $insertItemsQuery->bind_param("ssdd", $saleID, $productIDs[$i], $quantities[$i], $prices[$i]);
-                $insertItemsQuery->execute();
-
-                // Insert new data into product_stock table with stock_out incremented and TransactionDate
-                $insertStockQuery = $conn->prepare("INSERT INTO product_stock (ProductID, TransactionDate, stock_in, stock_out) VALUES (?, ?, 0, ?)");
-                $currentDate = date("Y-m-d"); // Get current date
-                $insertStockQuery->bind_param("ssd", $productIDs[$i], $currentDate, $quantities[$i]);
-                $insertStockQuery->execute();
-                $insertStockQuery->close();
+                if ($insertItemsQuery->execute()) {
+                    // Insert new data into product_stock table with stock_out incremented and TransactionDate
+                    $insertStockQuery = $conn->prepare("INSERT INTO product_stock (ProductID, TransactionDate, stock_in, stock_out) VALUES (?, ?, 0, ?)");
+                    $currentDate = date("Y-m-d"); // Get current date
+                    $insertStockQuery->bind_param("ssd", $productIDs[$i], $currentDate, $quantities[$i]);
+                    if (!$insertStockQuery->execute()) {
+                        // Handle error inserting into product_stock table
+                        echo '<div class="alert alert-danger" role="alert">Error inserting into product_stock table: ' . $conn->error . '</div>';
+                    }
+                    $insertStockQuery->close();
+                } else {
+                    // Handle error inserting into salesitems table
+                    echo '<div class="alert alert-danger" role="alert">Error inserting into salesitems table: ' . $conn->error . '</div>';
+                }
             }
 
             $insertItemsQuery->close();
-
             echo '<div class="alert alert-success" role="alert">Sale created successfully.</div>';
         } else {
-            echo '<div class="alert alert-danger" role="alert">Error creating sale: ' . $insertSalesQuery->error . '</div>';
+            // Handle error inserting into sales table
+            echo '<div class="alert alert-danger" role="alert">Error creating sale: ' . $conn->error . '</div>';
         }
 
         $insertSalesQuery->close();
         $checkSaleIDQuery->close();
     }
     ?>
-
-
 
 
 
@@ -165,93 +170,68 @@ function generateSaleID($conn)
                             ?>
                         </select>
                     </div>
-                    <div style="margin: 20px;" class="form-group row">
-                        <div class="form-group col-xs-2">
-                            <label for="stock">Stock Available:</label>
-                            <input type="number" class="form-control" name="available_quantity" id="available_quantity" value="" readonly>
+                    <br>
+                    <br>
+
+                    <div style="float: right;" class="form-group col-xs-2">
+                        <label>&nbsp;</label>
+                        <button type="button" class="btn btn-primary" onclick="addToCart()">Add To Basket</button>
+                    </div>
+
+
+                    <br>
+                    <br>
+                    <br>
+                    <!-- Table to display selected products -->
+                    <div class="card card-block">
+                        <table class="table table-bordered" id="cartTable">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Pack</th>
+                                    <th>Unit</th>
+                                    <th>Stock qty</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Amount</th>
+                                    <th>Action</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Table body content will be generated dynamically by JavaScript -->
+                            </tbody>
+                        </table>
+                        <div style="float: right;" class="form-group row">
+                            <div class="form-group col-xs-6">
+                                <label for="TotalAmount">Total Price Amount:</label>
+                            </div>
+                            <div class="form-group col-xs-5">
+                                <input type="text" class="form-control" name="TotalAmount" id="TotalAmount" required readonly>
+                            </div>
                         </div>
                     </div>
-
-
+                    <div style="float: right;" class="row form-group">
+                        <a href="sales.php" class="btn btn-danger">Back</a>
+                        <button type="submit" class="btn btn-success">Submit Sale</button>
+                    </div>
 
                 </div>
-
-                <div style="margin: 20px;" class="form-group row">
-                    <div class="form-group col-xs-2">
-                        <label for="Quantity">Quantity:</label>
-                        <input type="number" class="form-control" name="Quantity" id="Quantity" value="0">
-                    </div>
-                    <div class="form-group col-xs-2">
-                        <label for="pack">Pack:</label>
-                        <input type="text" class="form-control" name="pack" id="pack" required readonly>
-                    </div>
-                    <div class="form-group col-xs-2">
-                        <label for="measure_and_unit">Unit:</label>
-                        <input type="text" class="form-control" name="measure_and_unit" id="measure_and_unit" required readonly>
-                    </div>
-                    <div style="float: right;" class="form-group col-xs-2">
-                        <label for="price">Price:</label>
-                        <input type="text" class="form-control" name="price" id="price" required readonly>
-                    </div>
-                </div>
             </div>
-            <br>
-            <br>
-            <div style="float: right;" class="form-group col-xs-2">
-                <label>&nbsp;</label>
-                <button type="button" class="btn btn-primary" onclick="addToCart()">Add To Basket</button>
-            </div>
-
-
-            <br>
-            <br>
-            <br>
-            <!-- Table to display selected products -->
-            <div class="card card-block">
-                <table class="table table-bordered" id="cartTable">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Quantity</th>
-                            <th>Pack</th>
-                            <th>Unit</th>
-                            <th>Price</th>
-                            <th>Amount</th>
-
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Table body content will be generated dynamically by JavaScript -->
-                    </tbody>
-                </table>
-                <div style="float: right;" class="form-group row">
-                    <div class="form-group col-xs-6">
-                        <label for="TotalAmount">Total Price Amount:</label>
-                    </div>
-                    <div class="form-group col-xs-5">
-                        <input type="text" class="form-control" name="TotalAmount" id="TotalAmount" required readonly>
-                    </div>
-                </div>
-            </div>
-            <div style="float: right;" class="row form-group">
-                <a href="sales.php" class="btn btn-danger">Back</a>
-                <button type="submit" class="btn btn-success">Submit Sale</button>
-            </div>
-
         </div>
-
-
 
     </form>
 </article>
+
+
+
 <script>
     $(document).ready(function() {
-        // Event handler when product selection changes
+        // Event listener for product selection changes
         $('select[name="product_id"]').change(function() {
-            // Get the selected product ID
             var selectedProductId = $(this).val();
 
-            // Make an AJAX request to fetch pack, measure_and_unit, price, and available quantity for the selected product
+            // Make an AJAX request to fetch product details
             $.ajax({
                 type: 'POST',
                 url: 'fetch_product_details.php',
@@ -259,114 +239,107 @@ function generateSaleID($conn)
                     product_id: selectedProductId
                 },
                 success: function(response) {
-                    // Parse the JSON response
                     var productDetails = JSON.parse(response);
+                    if (!isNaN(parseFloat(productDetails.price)) && !isNaN(parseInt(productDetails.available_quantity))) {
+                        $('input[name="pack"]').val(productDetails.pack);
+                        $('input[name="measure_and_unit"]').val(productDetails.measure_and_unit);
+                        $('input[name="price"]').val(productDetails.price);
+                        $('input[name="available_quantity"]').val(productDetails.available_quantity);
 
-                    // Update the input fields with the fetched data
-                    $('input[name="pack"]').val(productDetails.pack);
-                    $('input[name="measure_and_unit"]').val(productDetails.measure_and_unit);
-                    $('input[name="price"]').val(productDetails.price);
-                    $('input[name="available_quantity"]').val(productDetails.available_quantity);
-
-                    // Set the maximum quantity based on available quantity
-                    $('#Quantity').attr('max', productDetails.available_quantity);
+                        // Set the maximum quantity based on available quantity
+                        $('#Quantity').attr('max', productDetails.available_quantity);
+                    } else {
+                        console.log("Error: Invalid product details received.");
+                    }
                 },
                 error: function() {
                     console.log('Error fetching product details.');
                 }
             });
         });
+
+        // Event listener for quantity input changes
+        $('#cartTable tbody').on('input', 'input[name="quantities[]"]', function() {
+            var quantity = parseInt($(this).val());
+            var availableQuantity = parseInt($(this).closest('tr').find('td:eq(3)').text());
+
+            // Validate against negative quantity
+            if (isNaN(quantity) || quantity < 0) {
+                $(this).val(1);
+                return;
+            }
+
+            // Update maximum allowed quantity
+            $(this).attr('max', availableQuantity);
+
+            // Limit quantity to available quantity
+            if (quantity > availableQuantity) {
+                $(this).val(availableQuantity);
+            }
+
+            // Update amount and total price
+            updateAmountAndTotalPrice($(this).closest('tr'));
+        });
     });
 
-    function updateAvailableQuantity() {
-        var maxAvailableQuantity = null; // Initialize maximum available quantity as null
-
-        // Iterate through each product
-        $('select[name="product_id"]').each(function() {
-            var productId = $(this).val(); // Get the product ID
-            var totalQuantityAdded = 0; // Initialize total quantity added to 0 for each product
-
-            // Iterate through the quantities of items already added to the cart for the current product
-            $('input[name="quantities[]"][data-product-id="' + productId + '"]').each(function() {
-                totalQuantityAdded += parseInt($(this).val());
-            });
-
-            // Get the initial available quantity for the current product
-            var initialAvailableQuantity = parseInt($('input[name="available_quantity"][data-product-id="' + productId + '"]').val());
-
-            // Calculate the available quantity for the current product
-            var availableQuantity = initialAvailableQuantity - totalQuantityAdded;
-
-            // Update the maximum available quantity if it's null or greater than the available quantity for the current product
-            if (maxAvailableQuantity === null || availableQuantity < maxAvailableQuantity) {
-                maxAvailableQuantity = availableQuantity;
-            }
-        });
-
-        // Return the maximum available quantity
-        return maxAvailableQuantity;
-    }
-
     function addToCart() {
-        // Get the selected product ID, name, quantity, pack, measure_and_unit, and price
         var productId = $('#product_id').val();
         var productName = $('#product_id option:selected').text();
-        var quantity = parseInt($('#Quantity').val()); // Parse the quantity to an integer
-        var pack = $('#pack').val();
-        var measureAndUnit = $('#measure_and_unit').val();
-        var price = $('#price').val();
+        var existingProduct = $('#cartTable tbody').find('td:first-child:contains("' + productName + '")').closest('tr');
 
-        // Get the available quantity
-        var availableQuantity = updateAvailableQuantity();
+        if (existingProduct.length > 0) {
+            alert('This product is already added to the cart.');
+            return;
+        }
 
-        // Calculate the total quantity in the cart after adding the new item
-        var totalQuantityAdded = quantity;
-        $('input[name="quantities[]"]').each(function() {
-            totalQuantityAdded += parseInt($(this).val());
+        $.ajax({
+            type: 'POST',
+            url: 'fetch_product_details.php',
+            data: {
+                product_id: productId
+            },
+            success: function(response) {
+                var productDetails = JSON.parse(response);
+                var availableQuantity = parseInt(productDetails.available_quantity);
+
+                var newRow = '<tr>' +
+                    '<td> <strong>' + productName + ' </strong> </td>' +
+                    '<td>' + productDetails.pack + '</td>' +
+                    '<td>' + productDetails.measure_and_unit + '</td>' +
+                    '<td style="color: green;">' + availableQuantity + '</td>' +
+                    '<td>' + productDetails.price + '</td>' +
+                    '<td><input type="number" class="form-control" name="quantities[]" value="0" min="1" max="' + availableQuantity + '"></td>' +
+                    '<td class="amount">' + (productDetails.price * 1).toFixed(2) + '</td>' +
+                    '<td><button type="button" class="btn btn-danger btn-sm" onclick="removeFromCart(this)">Remove</button></td>' + // Add remove button
+                    // Add hidden input fields for product ID and price
+                    '<input type="hidden" name="product_ids[]" value="' + productId + '">' +
+                    '<input type="hidden" name="prices[]" value="' + productDetails.price + '">' +
+                    '</tr>';
+                $('#cartTable tbody').append(newRow);
+
+                updateTotalAmount();
+            },
+            error: function() {
+                console.log('Error fetching product details.');
+            }
         });
+    }
 
-        // Check if the total quantity in the cart exceeds the initial available quantity
-        var initialAvailableQuantity = parseInt($('input[name="available_quantity"]').val());
-        if (totalQuantityAdded > initialAvailableQuantity) {
-            alert('Total quantity in the cart exceeds initial available quantity.');
-            return;
-        }
-
-        // Check if the quantity is negative
-        if (quantity <= 0) {
-            alert('Please enter a valid quantity.');
-            return;
-        }
-
-        // Calculate the amount for the product based on its quantity and price
-        var amount = quantity * price;
-
-        // Append a new row to the table with product details and calculated amount
-        var newRow = '<tr>' +
-            '<td>' + productName + '<input type="hidden" name="product_ids[]" value="' + productId + '"></td>' +
-            '<td>' + quantity + '<input type="hidden" name="quantities[]" value="' + quantity + '"></td>' +
-            '<td>' + pack + '</td>' +
-            '<td>' + measureAndUnit + '</td>' +
-            '<td class="price">' + price + '<input type="hidden" name="prices[]" value="' + price + '"></td>' +
-            '<td class="amount">' + amount.toFixed(2) + '</td>' + // Display the calculated amount
-            '</tr>';
-        $('#cartTable tbody').append(newRow);
-
-        // Update the total price amount
-        updateTotalAmount();
-
-        // Update the available quantity input field
-        $('input[name="available_quantity"]').val(availableQuantity - totalQuantityAdded);
-
-        // Clear the input fields
-        $('#product_id').val('');
-        $('#Quantity').val(''); // Reset to empty value
-        $('#pack').val('');
-        $('#measure_and_unit').val('');
-        $('#price').val('');
+    // Function to remove product from the cart
+    function removeFromCart(button) {
+        $(button).closest('tr').remove(); // Remove the row from the table
+        updateTotalAmount(); // Update the total amount
     }
 
 
+    function updateAmountAndTotalPrice(row) {
+        var quantity = parseInt(row.find('input[name="quantities[]"]').val());
+        var price = parseFloat(row.find('td:eq(4)').text());
+        var amount = isNaN(quantity) || isNaN(price) ? 0 : quantity * price;
+        row.find('.amount').text(amount.toFixed(2));
+
+        updateTotalAmount();
+    }
 
     function updateTotalAmount() {
         var totalPrice = 0;
@@ -375,7 +348,6 @@ function generateSaleID($conn)
             totalPrice += isNaN(amount) ? 0 : amount;
         });
 
-        // Update the Total Amount input field
         $('#TotalAmount').val(totalPrice.toFixed(2));
     }
 </script>

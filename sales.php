@@ -24,7 +24,6 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
         </div>
     </div>
     <?php
-    // Check if a sale needs to be deleted and if the deletion process has not already been initiated
     if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['SaleID']) && !isset($_GET['deletionCompleted'])) {
         $saleID = $_GET['SaleID'];
 
@@ -98,6 +97,17 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
                 <div class="card-body">
                     <div class="card-title-body">
                         <section class="example">
+                            <style>
+                                .table {
+                                    text-align: center;
+                                }
+
+                                .table th,
+                                .table td {
+                                    text-align: center;
+                                }
+                            </style>
+
                             <table class="table table-bordered col-md-12">
                                 <thead>
                                     <tr>
@@ -110,12 +120,11 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
                                     </tr>
                                 </thead>
                                 <tbody>
-
                                     <?php
                                     // Fetch sales data with customer names using a JOIN
                                     $salesQuery = $conn->query("SELECT s.SaleID, s.CustomerID, s.SaleDate, s.TotalAmount, c.Name AS CustomerName 
-                                                                 FROM sales s
-                                                                 JOIN customers c ON s.CustomerID = c.CustomerID");
+                                     FROM sales s
+                                     JOIN customers c ON s.CustomerID = c.CustomerID");
 
                                     while ($salesRow = $salesQuery->fetch_assoc()) {
                                         echo '<tr>';
@@ -124,19 +133,24 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
                                         echo '<td>' . $salesRow['CustomerName'] . '</td>';
                                         echo '<td>' . $salesRow['TotalAmount'] . '</td>';
                                         echo '<td>
-            <form method="GET" action="' . $_SERVER['PHP_SELF'] . '">
-                <input type="hidden" name="action" value="delete">
-                <input type="hidden" name="SaleID" value="' . $salesRow['SaleID'] . '">
-                <button type="submit" onclick="return confirm(\'Are you sure you want to delete this sale?\')">Delete</button>
-                <button type="submit"  class="btn btn-primary btn-sm rounded-s"> formaction="print_sales.php" formtarget="_blank">View</button>
-            </form>
-          </td>';
+                    <form method="GET" action="' . $_SERVER['PHP_SELF'] . '">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="SaleID" value="' . $salesRow['SaleID'] . '">
+                        <button type="submit" onclick="return confirm(\'Are you sure you want to delete this sale?\')" class="btn btn-danger btn-sm rounded-s " >Delete</button>
+                    </form>
+                </td>';
+                                        echo '<td>
+                    <form method="GET" action="print_sales.php" target="_blank">
+                        <input type="hidden" name="SaleID" value="' . $salesRow['SaleID'] . '">
+                        <button type="submit" class="btn btn-primary btn-sm rounded-s">View</button>
+                    </form>
+                </td>';
                                         echo '</tr>';
                                     }
                                     ?>
-
                                 </tbody>
                             </table>
+
                         </section>
                     </div>
                 </div>

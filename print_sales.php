@@ -38,7 +38,7 @@
                             Sales Receipt
                         </h3>
                         <!-- Print button -->
-                        <button onclick="printReceipt('<?php echo $saleID; ?>')">Print Receipt</button>
+                        <button onclick="printReceipt('<?php echo $saleID; ?>')" class="btn btn-success ">Print Receipt</button>
                     </div>
                 </div>
             </div>
@@ -70,17 +70,18 @@
                             </tr>
                             <tr>
                                 <?php
-                                $customerQuery = $conn->prepare("SELECT Name, Address FROM customers WHERE CustomerID = ?");
+                                $customerQuery = $conn->prepare("SELECT Name, Tin, Address FROM customers WHERE CustomerID = ?");
                                 $customerQuery->bind_param("s", $saleData['CustomerID']);
                                 $customerQuery->execute();
                                 $customerResult = $customerQuery->get_result();
                                 $customerData = $customerResult->fetch_assoc();
                                 ?>
                                 <td><?php echo $customerData['Name']; ?></td>
-                                <td></td> <!-- Tin column, you can fetch the Tin from the database if needed -->
+                                <td><?php echo $customerData['Tin']; ?></td> <!-- Tin column -->
                                 <td><?php echo $customerData['Address']; ?></td> <!-- Display the address -->
                             </tr>
                         </table>
+
 
                         <table class="table table-bordered">
                             <thead>

@@ -72,31 +72,30 @@ if (isset($_GET['SaleID'])) {
                     <tbody>';
 
     // Fetch customer details
-    $customerQuery = $conn->prepare("SELECT Name, Address FROM customers WHERE CustomerID = ?");
+    $customerQuery = $conn->prepare("SELECT Name, Address, tin FROM customers WHERE CustomerID = ?");
     $customerQuery->bind_param("s", $saleData['CustomerID']);
     $customerQuery->execute();
     $customerResult = $customerQuery->get_result();
     $customerData = $customerResult->fetch_assoc();
 
-    // Add customer details to the HTML content
     $htmlContent .= '
-                        <tr>
-                            <td>' . $customerData['Name'] . '</td>
-                            <td></td> <!-- Tin column, you can fetch the Tin from the database if needed -->
-                            <td>' . $customerData['Address'] . '</td> <!-- Display the address -->
-                        </tr>
-                    </tbody>
-                </table>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Product Name</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>';
+    <tr>
+        <td>' . $customerData['Name'] . '</td>
+        <td>' . $customerData['tin'] . '</td>
+        <td>' . $customerData['Address'] . '</td> <!-- Display the address -->
+    </tr>
+</tbody>
+</table>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>';
 
     // Initialize total amount variable
     $totalAmount = 0;
