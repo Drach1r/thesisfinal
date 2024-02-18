@@ -27,53 +27,56 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
     if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['SaleID']) && !isset($_GET['deletionCompleted'])) {
         $saleID = $_GET['SaleID'];
 
+        // Validate SaleID format
+        if (!preg_match('/^SO-\d+$/', $saleID)) {
+
+            exit; // Stop execution if SaleID format is invalid
+        }
+
+        // Select the product IDs, quantities, and sale dates associated with the deleted sale from salesitems table
+        $selectProductInfoStatement = $conn->prepare("SELECT si.ProductID, si.Quantity, s.SaleDate 
+                                          FROM salesitems si 
+                                          INNER JOIN sales s ON si.SaleID = s.SaleID 
+                                          WHERE si.SaleID = ?");
+        $selectProductInfoStatement->bind_param("s", $saleID); // Assuming SaleID is a string
+        $selectProductInfoStatement->execute();
+        $productInfoResult = $selectProductInfoStatement->get_result();
+
+        // Iterate over the result and delete corresponding records from product_stock table
+        while ($row = $productInfoResult->fetch_assoc()) {
+            $productID = $row['ProductID'];
+            $quantity = $row['Quantity'];
+            $saleDate = $row['SaleDate'];
+
+            // Prepare the DELETE statement for product_stock table
+            $deleteProductStockStatement = $conn->prepare("DELETE FROM product_stock WHERE ProductID = ? AND TransactionDate = ? AND stock_out = ?");
+            $deleteProductStockStatement->bind_param("isd", $productID, $saleDate, $quantity);
+
+            // Execute the DELETE statement for product_stock table
+            if (!$deleteProductStockStatement->execute()) {
+                echo '<div class="alert alert-warning" role="alert">Error deleting records from product_stock table. Please try again.</div>';
+            }
+
+            $deleteProductStockStatement->close();
+        }
+
+        // Free the result set
+        $productInfoResult->free();
+
+        // Now, delete the records from the salesitems table
         // Prepare the DELETE statement for salesitems table
         $deleteSalesItemsStatement = $conn->prepare("DELETE FROM salesitems WHERE SaleID = ?");
-        $deleteSalesItemsStatement->bind_param("i", $saleID);
+        $deleteSalesItemsStatement->bind_param("s", $saleID); // Assuming SaleID is a string
 
         // Execute the DELETE statement for salesitems table
         if ($deleteSalesItemsStatement->execute()) {
             // Now, delete the sale
             // Prepare the DELETE statement for the sale
             $deleteSaleStatement = $conn->prepare("DELETE FROM sales WHERE SaleID = ?");
-            $deleteSaleStatement->bind_param("i", $saleID);
+            $deleteSaleStatement->bind_param("s", $saleID); // Assuming SaleID is a string
 
             // Execute the DELETE statement for the sale
             if ($deleteSaleStatement->execute()) {
-                // Sale and related items deleted successfully
-
-                // Select the product IDs, quantities, and sale dates associated with the deleted sale from salesitems table
-                $selectProductInfoStatement = $conn->prepare("SELECT si.ProductID, si.Quantity, s.SaleDate 
-                                                          FROM salesitems si 
-                                                          INNER JOIN sales s ON si.SaleID = s.SaleID 
-                                                          WHERE si.SaleID = ?");
-                $selectProductInfoStatement->bind_param("i", $saleID);
-                $selectProductInfoStatement->execute();
-                $productInfoResult = $selectProductInfoStatement->get_result();
-
-                // Iterate over the result and delete corresponding records from product_stock table
-                while ($row = $productInfoResult->fetch_assoc()) {
-                    $productID = $row['ProductID'];
-                    $quantity = $row['Quantity'];
-                    $saleDate = $row['SaleDate'];
-
-                    // Prepare the DELETE statement for product_stock table
-                    $deleteProductStockStatement = $conn->prepare("DELETE FROM product_stock WHERE ProductID = ? AND last_updated_date = ? AND stock_out = ?");
-                    $deleteProductStockStatement->bind_param("isd", $productID, $saleDate, $quantity);
-
-                    // Execute the DELETE statement for product_stock table
-                    if (!$deleteProductStockStatement->execute()) {
-                        echo '<div class="alert alert-warning" role="alert">Error deleting records from product_stock table. Please try again.</div>';
-                    } else {
-                        echo "Records for product ID $productID deleted successfully from product_stock<br>";
-                    }
-
-                    $deleteProductStockStatement->close();
-                }
-
-                // Free the result set
-                $productInfoResult->free();
-
                 echo '<div class="alert alert-success" role="alert">Data deleted successfully.</div>';
             } else {
                 echo '<div class="alert alert-warning" role="alert">Error deleting sale. Please try again.</div>';
@@ -87,6 +90,9 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
         $deleteSaleStatement->close();
     }
     ?>
+
+
+
 
 
 
@@ -112,7 +118,7 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
                                 <thead>
                                     <tr>
                                         <th>Sale Date</th>
-                                        <th>Sales ID</th>
+                                        <th>Sale ID</th>
                                         <th>Customer</th>
                                         <th>Total Amount</th>
                                         <th>Delete</th>

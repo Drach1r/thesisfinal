@@ -10,6 +10,7 @@ class ComposerStaticInitb3b38ede3f18e99bdefdfad43bfe59e5
         'P' => 
         array (
             'Psr\\Log\\' => 8,
+            'Phpml\\' => 6,
         ),
         'M' => 
         array (
@@ -22,6 +23,10 @@ class ComposerStaticInitb3b38ede3f18e99bdefdfad43bfe59e5
         array (
             0 => __DIR__ . '/..' . '/psr/log/src',
         ),
+        'Phpml\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/php-ai/php-ml/src',
+        ),
         'Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
@@ -30,6 +35,16 @@ class ComposerStaticInitb3b38ede3f18e99bdefdfad43bfe59e5
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'Simplex\\Fraction' => __DIR__ . '/..' . '/uestla/simplex-calculator/Simplex/Fraction.php',
+        'Simplex\\Func' => __DIR__ . '/..' . '/uestla/simplex-calculator/Simplex/Func.php',
+        'Simplex\\Helpers' => __DIR__ . '/..' . '/uestla/simplex-calculator/Simplex/Helpers.php',
+        'Simplex\\Restriction' => __DIR__ . '/..' . '/uestla/simplex-calculator/Simplex/Restriction.php',
+        'Simplex\\Solver' => __DIR__ . '/..' . '/uestla/simplex-calculator/Simplex/Solver.php',
+        'Simplex\\Table' => __DIR__ . '/..' . '/uestla/simplex-calculator/Simplex/Table.php',
+        'Simplex\\TableRow' => __DIR__ . '/..' . '/uestla/simplex-calculator/Simplex/TableRow.php',
+        'Simplex\\Task' => __DIR__ . '/..' . '/uestla/simplex-calculator/Simplex/Task.php',
+        'Simplex\\ValueFunc' => __DIR__ . '/..' . '/uestla/simplex-calculator/Simplex/ValueFunc.php',
+        'Simplex\\VariableSet' => __DIR__ . '/..' . '/uestla/simplex-calculator/Simplex/VariableSet.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

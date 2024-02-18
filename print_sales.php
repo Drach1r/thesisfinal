@@ -120,7 +120,7 @@
 
                         <div class="container" style="float: right;">
                             <!-- Your existing HTML content -->
-                            <p class=" text-right"><strong>Total Amount:</strong> <?php echo $saleData['TotalAmount']; ?></p>
+                            <p class=" text-right">Total Amount: <strong><?php echo $saleData['TotalAmount']; ?> </strong></p>
 
                             <!-- Added section for Cashier/Authorize Representative -->
                             <div class="row mt-4">

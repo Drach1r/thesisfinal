@@ -3,60 +3,9 @@ include 'header.php';
 include 'db_connect.php';
 include 'sidebar.php';
 
-// Initialize variables for search
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-
-// Fetch data from the manufacturing_orders table for the first table
-$query = "SELECT mo.*, pl.Name as ProductName, pl.measure, pl.Unit, pl.pack
-          FROM manufacturing_orders mo
-          LEFT JOIN productlist pl ON mo.ProductID = pl.ProductID
-          WHERE mo.status <> 'In Stock'";
-
-// Append search condition if search term is provided
-if (!empty($search)) {
-    $query .= " AND (mo.order_id LIKE '%$search%' OR pl.Name LIKE '%$search%')";
-}
-
-$result = mysqli_query($conn, $query);
-
-// Fetch data from the manufacturing_orders table for the 'In Stock' table
-$instockQuery = "SELECT mo.*, pl.Name as ProductName, pl.measure, pl.Unit, pl.pack
-                 FROM manufacturing_orders mo
-                 LEFT JOIN productlist pl ON mo.ProductID = pl.ProductID
-                 WHERE mo.status = 'In Stock'";
-$instockResult = mysqli_query($conn, $instockQuery);
-
-if (!$result || !$instockResult) {
-    die("Query failed: " . mysqli_error($conn));
-}
-
-// Initialize pagination variables for the first table
-$page = isset($_GET['page']) ? $_GET['page'] : 1; // Current page, default is 1
-$limit = 6; // Number of results per page
-$offset = ($page - 1) * $limit; // Offset for the SQL query
-
-// Fetch data from the manufacturing_orders table for the first table with pagination
-$queryWithPagination = $query . " LIMIT $limit OFFSET $offset";
-$result = mysqli_query($conn, $queryWithPagination);
-
-if (!$result) {
-    die("Query failed: " . mysqli_error($conn));
-}
-
-// Count total records for pagination
-$countQuery = "SELECT COUNT(*) AS total FROM manufacturing_orders WHERE status <> 'In Stock'";
-// Append search condition if search term is provided
-if (!empty($search)) {
-    $countQuery .= " AND (order_id LIKE '%$search%' OR ProductID IN (SELECT ProductID FROM productlist WHERE Name LIKE '%$search%'))";
-}
-$countResult = mysqli_query($conn, $countQuery);
-$countRow = mysqli_fetch_assoc($countResult);
-$totalRecords = $countRow['total'];
-
-// Calculate total pages
-$totalPages = ceil($totalRecords / $limit);
 
 ?>
+
 
 <article class="content items-list-page">
     <div class="title-search-block">
@@ -73,6 +22,85 @@ $totalPages = ceil($totalRecords / $limit);
             </div>
         </div>
     </div>
+    <?php
+    // Fetch data from the manufacturing_orders table for the first table (In Production)
+    $query = "SELECT mo.*, pl.Name as ProductName, pl.measure, pl.Unit, pl.pack
+              FROM manufacturing_orders mo
+              LEFT JOIN productlist pl ON mo.ProductID = pl.ProductID
+              WHERE mo.status = 'In Production'";
+
+    $result = mysqli_query($conn, $query);
+
+    if (!$result) {
+        die("Query failed: " . mysqli_error($conn));
+    }
+
+    // Check if the delete button is clicked
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] == 'delete_in_production') {
+        // Ensure the order_id is set and not empty
+        if (isset($_POST['order_id']) && !empty($_POST['order_id'])) {
+            $order_id = $_POST['order_id'];
+
+            // Begin transaction
+            mysqli_begin_transaction($conn);
+
+            try {
+                // Fetch status of the order
+                $checkStatusQuery = "SELECT status FROM manufacturing_orders WHERE order_id = ?";
+                $checkStatusStatement = $conn->prepare($checkStatusQuery);
+                $checkStatusStatement->bind_param("s", $order_id);
+                $checkStatusStatement->execute();
+                $checkStatusResult = $checkStatusStatement->get_result();
+                $row = $checkStatusResult->fetch_assoc();
+                $status = $row['status'];
+                $checkStatusStatement->close();
+
+                if ($status == 'In Production') {
+                    // Delete corresponding data in manufacturing_mat table
+                    $deleteMatQuery = "DELETE FROM manufacturing_mat WHERE order_id = ?";
+                    $deleteMatStatement = $conn->prepare($deleteMatQuery);
+                    $deleteMatStatement->bind_param("s", $order_id);
+                    $deleteMatStatement->execute();
+                    $deleteMatStatement->close();
+
+                    // Prepare the DELETE query for manufacturing_orders
+                    $deleteQuery = "DELETE FROM manufacturing_orders WHERE order_id = ?";
+                    $deleteStatement = $conn->prepare($deleteQuery);
+                    $deleteStatement->bind_param("s", $order_id);
+
+                    // Execute the DELETE statement for manufacturing_orders
+                    if ($deleteStatement->execute()) {
+                        // Commit transaction
+                        mysqli_commit($conn);
+                        // Display success message
+                        echo '<div class="alert alert-success" role="alert">Record deleted successfully.</div>';
+                        // Redirect to the same page after 3 seconds to prevent form resubmission
+                        echo '<script>setTimeout(function(){ window.location.href = window.location.pathname; }, 1000);</script>';
+                        exit(); // Exit to prevent further execution
+                    } else {
+                        // Rollback transaction
+                        mysqli_rollback($conn);
+                        // Display error message
+                        echo '<div class="alert alert-warning" role="alert">Error deleting record. Please try again.</div>';
+                    }
+
+                    // Close the prepared statement
+                    $deleteStatement->close();
+                } else {
+                    // Rollback transaction
+                    mysqli_rollback($conn);
+                    // Display error message if the status is not 'In Production'
+                    echo '<div class="alert alert-warning" role="alert">Error: This record cannot be deleted because its status is not "In Production".</div>';
+                }
+            } catch (Exception $e) {
+                // Rollback transaction on exception
+                mysqli_rollback($conn);
+                echo '<div class="alert alert-danger" role="alert">An error occurred. Please try again.</div>';
+            }
+        }
+    }
+    ?>
+
 
     <section class="section">
         <div class="row">
@@ -85,7 +113,7 @@ $totalPages = ceil($totalRecords / $limit);
                             <br>
                             <br>
                             <div class="card card-block">
-                                <table class="table table-bordered">
+                                <table class="table table-bordered" id="inProductionTable"> <!-- Unique ID for the table -->
                                     <thead>
                                         <tr>
                                             <th>Order ID</th>
@@ -116,19 +144,21 @@ $totalPages = ceil($totalRecords / $limit);
                                             echo "<td>{$row['due_date']}</td>";
                                             echo "<td class='text-warning'>{$row['status']}</td>";
                                             echo "<td class='text-center'>
-                                                    <div class='btn-group'>
-                                                        <button type='button' class='btn btn-secondary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
-                                                            Actions
-                                                        </button>
-                                                        <div class='dropdown-menu'>
-                                                            <a class='dropdown-item edit-action' href='edit_production.php?id=$order_id'>Edit <i class='fa fa-pencil'></i></a>
-                                                            <div class='dropdown-divider'></div>
-                                                            <a class='dropdown-item delete-action' href='#' onclick='return confirm(\"Are you sure you want to delete this data?\")'>Delete <i class='fa fa-trash-o'></i></a>
-                                                            <div class='dropdown-divider'></div>
-                                                            <button class='dropdown-item instock-action' data-order-id='$order_id' data-due-date='{$row['due_date']}'>Change Status to In Stock</button>
-                                                        </div>
+                                                <div class='btn-group'>
+                                                    <button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
+                                                        Actions
+                                                    </button>
+                                                    <div class='dropdown-menu'>
+                                                        <form method='POST' action='{$_SERVER['PHP_SELF']}'>
+                                                            <input type='hidden' name='action' value='delete_in_production'>
+                                                            <input type='hidden' name='order_id' value='$order_id'>
+                                                            <button type='submit' class='dropdown-item delete-action' style='color: red;' onclick='return confirm(\"Are you sure you want to delete this data?\")'>Delete <i class='fa fa-trash-o'></i></button>
+                                                        </form>
+                                                        <div class='dropdown-divider'></div>
+                                                        <button class='dropdown-item instock-action' data-order-id='$order_id' data-due-date='{$row['due_date']}' style='color: green;'>Change Status to In Stock</button>
                                                     </div>
-                                                </td>";
+                                                </div>
+                                            </td>";
                                             echo "</tr>";
                                         }
                                         ?>
@@ -142,6 +172,102 @@ $totalPages = ceil($totalRecords / $limit);
         </div>
     </section>
 
+
+    <?php
+
+    // Initialize variables for search
+    $search = isset($_GET['search']) ? $_GET['search'] : '';
+
+    // Fetch data from the manufacturing_orders table for the 'In Stock' table
+    $query = "SELECT mo.*, pl.Name as ProductName, pl.measure, pl.Unit, pl.pack
+          FROM manufacturing_orders mo
+          LEFT JOIN productlist pl ON mo.ProductID = pl.ProductID
+          WHERE mo.status = 'In Stock'";
+
+    // Append search condition if search term is provided
+    if (!empty($search)) {
+        $query .= " AND (mo.order_id LIKE '%$search%' OR pl.Name LIKE '%$search%')";
+    }
+
+    // Initialize pagination variables for the 'In Stock' table
+    $page = isset($_GET['page']) ? $_GET['page'] : 1; // Current page, default is 1
+    $limit = 6; // Number of results per page
+    $offset = ($page - 1) * $limit; // Offset for the SQL query
+
+    // Fetch data from the 'In Stock' table with pagination
+    $queryWithPagination = $query . " LIMIT $limit OFFSET $offset";
+    $instockResult = mysqli_query($conn, $queryWithPagination);
+
+    if (!$instockResult) {
+        die("Query failed: " . mysqli_error($conn));
+    }
+
+    // Count total records for pagination
+    $countQuery = "SELECT COUNT(*) AS total FROM manufacturing_orders WHERE status = 'In Stock'";
+    // Append search condition if search term is provided
+    if (!empty($search)) {
+        $countQuery .= " AND (order_id LIKE '%$search%' OR ProductID IN (SELECT ProductID FROM productlist WHERE Name LIKE '%$search%'))";
+    }
+    $countResult = mysqli_query($conn, $countQuery);
+    $countRow = mysqli_fetch_assoc($countResult);
+    $totalRecords = $countRow['total'];
+
+    // Calculate total pages
+    $totalPages = ceil($totalRecords / $limit);
+
+
+
+    // Handle form submissions for 'instock' table
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] == 'delete') {
+        // Ensure the order_id is set and not empty
+        if (isset($_POST['order_id']) && !empty($_POST['order_id']) && isset($_GET['table']) && $_GET['table'] === 'instock') {
+            $order_id = $_POST['order_id'];
+
+            // Delete corresponding data in 'stock' table based on matching criteria
+            $deleteStockQuery = "DELETE FROM stock WHERE RawMaterialID IN (SELECT RawMaterialID FROM manufacturing_mat WHERE order_id = ? AND stock_out = issued_quantity) LIMIT 1";
+            $deleteStockStatement = $conn->prepare($deleteStockQuery);
+            $deleteStockStatement->bind_param("s", $order_id);
+            $deleteStockStatement->execute();
+            $deleteStockStatement->close();
+
+            // Specify the table name for the deletion query (product_stock)
+            $productStockTable = 'product_stock'; // Change this to the correct table name
+
+            // Perform the deletion query for 'product_stock' table
+            $deleteProductStockQuery = "DELETE FROM $productStockTable WHERE ProductID IN (SELECT ProductID FROM manufacturing_orders WHERE order_id = ? AND status = 'In Stock') ORDER BY TransactionDate DESC LIMIT 1";
+            $deleteProductStockStatement = $conn->prepare($deleteProductStockQuery);
+            $deleteProductStockStatement->bind_param("s", $order_id);
+            $deleteProductStockStatement->execute();
+            $deleteProductStockStatement->close();
+
+            // Specify the table name for the deletion query (manufacturing_mat)
+            $manufacturingMatTable = 'manufacturing_mat'; // Change this to the correct table name
+
+            // Perform the deletion query for 'manufacturing_mat' table
+            $deleteManufacturingMatQuery = "DELETE FROM $manufacturingMatTable WHERE order_id = ?";
+            $deleteManufacturingMatStatement = $conn->prepare($deleteManufacturingMatQuery);
+            $deleteManufacturingMatStatement->bind_param("s", $order_id);
+            $deleteManufacturingMatStatement->execute();
+            $deleteManufacturingMatStatement->close();
+
+            // Specify the table name for the deletion query (manufacturing_orders)
+            $manufacturingOrdersTable = 'manufacturing_orders'; // Change this to the correct table name
+
+            // Perform the deletion query for 'manufacturing_orders' table
+            $deleteManufacturingOrdersQuery = "DELETE FROM $manufacturingOrdersTable WHERE order_id = ?";
+            $deleteManufacturingOrdersStatement = $conn->prepare($deleteManufacturingOrdersQuery);
+            $deleteManufacturingOrdersStatement->bind_param("s", $order_id);
+            $deleteManufacturingOrdersStatement->execute();
+            $deleteManufacturingOrdersStatement->close();
+
+            // Display success message
+            echo '<div class="alert alert-success" role="alert">Data deleted successfully.</div>';
+        }
+    }
+
+
+    ?>
+
     <section class="section">
         <div class="row">
             <div class="card col-lg-12">
@@ -151,7 +277,6 @@ $totalPages = ceil($totalRecords / $limit);
                         </div>
                         <section class="example">
                             <br>
-
                             <br>
                             <form id="searchForm" method="GET" action="">
                                 <label for="search">Search:</label>
@@ -159,11 +284,8 @@ $totalPages = ceil($totalRecords / $limit);
                                 <button type="submit" class="btn btn-primary btn-sm rounded-s">Search</button>
                                 <a href="?page=1" class="btn btn-warning btn-sm rounded-s">Cancel Search</a>
                             </form>
-
                             <br>
-
                             <div class="card card-block">
-
                                 <table class="table table-bordered">
                                     <thead>
                                         <tr>
@@ -178,75 +300,54 @@ $totalPages = ceil($totalRecords / $limit);
                                         </tr>
                                     </thead>
                                     <tbody id="instock-table-body">
-                                        <?php
-                                        // Iterate through the 'In Stock' result set and populate the table rows
-                                        while ($instockRow = mysqli_fetch_assoc($instockResult)) {
-                                            echo "<tr id='row-instock-$instockRow[order_id]'>";
-                                            echo "<td>{$instockRow['order_id']}</td>";
-
-                                            $instockOrderId =  $instockRow['order_id'];
-                                            $instockQuantity =  $instockRow['batch_amount'] . ' ' . $instockRow['pack'];
-                                            $instockUnit =   $instockRow['measure'] . ' ' . $instockRow['Unit'];
-
-                                            echo "<td>{$instockRow['ProductName']}</td>";
-                                            echo "<td>{$instockQuantity}</td>";
-                                            echo "<td>{$instockUnit}</td>";
-                                            echo "<td>{$instockRow['o_date']}</td>";
-                                            echo "<td>{$instockRow['due_date']}</td>";
-                                            echo "<td class='text-success'>{$instockRow['status']}</td>";
-                                            echo "<td class='text-center'>
-                                                    <div class='btn-group'>
-                                                        <button type='button' class='btn btn-secondary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
-                                                            Actions
-                                                        </button>
-                                                        <div class='dropdown-menu'>
-                                                            <a class='dropdown-item edit-action' href='edit_production.php?id=$instockOrderId'>Edit <i class='fa fa-pencil'></i></a>
-                                                            <div class='dropdown-divider'></div>
-                                                            <a class='dropdown-item delete-action' href='#' onclick='return confirm(\"Are you sure you want to delete this data?\")'>Delete <i class='fa fa-trash-o'></i></a>
-                                                        </div>
-                                                    </div>
-                                                </td>";
-                                            echo "</tr>";
-                                        }
-                                        ?>
+                                        <?php while ($instockRow = mysqli_fetch_assoc($instockResult)) { ?>
+                                            <tr>
+                                                <!-- Output table data for each column -->
+                                                <td><?php echo $instockRow['order_id']; ?></td>
+                                                <td><?php echo $instockRow['ProductName']; ?></td>
+                                                <td><?php echo $instockRow['batch_amount'] . ' ' . $instockRow['pack']; ?></td>
+                                                <td><?php echo $instockRow['measure'] . ' ' . $instockRow['Unit']; ?></td>
+                                                <td><?php echo $instockRow['o_date']; ?></td>
+                                                <td><?php echo $instockRow['due_date']; ?></td>
+                                                <td class="text-success"><?php echo $instockRow['status']; ?></td>
+                                                <td class="text-center">
+                                                    <form method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>?table=instock">
+                                                        <input type="hidden" name="action" value="delete">
+                                                        <input type="hidden" name="order_id" value="<?php echo $instockRow['order_id']; ?>">
+                                                        <button type="submit" onclick="return confirm('Are you sure you want to delete this record?')" class="btn btn-danger btn-sm rounded-s">Delete</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php } ?>
                                     </tbody>
                                 </table>
                                 <nav class="text-xs-center">
                                     <ul class="pagination">
-                                        <?php
-                                        // Calculate total number of pages
-                                        $totalPagesQuery = "SELECT COUNT(*) AS total FROM produced WHERE actual != 0";
-                                        $totalPagesResult = mysqli_query($conn, $totalPagesQuery);
-                                        $totalRows = mysqli_fetch_assoc($totalPagesResult)['total'];
-                                        $totalPages = ceil($totalRows / $limit);
-
-                                        // Previous page link
-                                        echo "<li class='page-item " . ($page == 1 ? 'disabled' : '') . "'>
-                <a class='page-link' href='?page=" . max(1, $page - 1) . "'>Prev</a>
-            </li>";
-
-                                        // Page links
-                                        for ($i = 1; $i <= $totalPages; $i++) {
-                                            echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'>
-                    <a class='page-link' href='?page=$i'>$i</a>
-                </li>";
-                                        }
-
-                                        // Next page link
-                                        echo "<li class='page-item " . ($page == $totalPages ? 'disabled' : '') . "'>
-                <a class='page-link' href='?page=" . min($totalPages, $page + 1) . "'>Next</a>
-            </li>";
-                                        ?>
+                                        <!-- Previous page link -->
+                                        <li class="page-item <?php echo $page == 1 ? 'disabled' : ''; ?>">
+                                            <a class="page-link" href="?page=<?php echo max(1, $page - 1); ?>">Prev</a>
+                                        </li>
+                                        <!-- Page links -->
+                                        <?php for ($i = 1; $i <= $totalPages; $i++) : ?>
+                                            <li class="page-item <?php echo $page == $i ? 'active' : ''; ?>">
+                                                <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                            </li>
+                                        <?php endfor; ?>
+                                        <!-- Next page link -->
+                                        <li class="page-item <?php echo $page == $totalPages || $totalPages == 0 ? 'disabled' : ''; ?>">
+                                            <a class="page-link" href="?page=<?php echo min($totalPages, $page + 1); ?>">Next</a>
+                                        </li>
                                     </ul>
                                 </nav>
                             </div>
                         </section>
-
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+
 </article>
 
 <script>
@@ -308,6 +409,11 @@ $totalPages = ceil($totalRecords / $limit);
                     if (this.status === 200 && this.responseText === 'success') {
                         // Update the UI or provide feedback as needed
                         console.log('Data inserted successfully into product_stock and stock tables!');
+
+                        // Set a 1-second timer to refresh the page after successful insertion
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1000);
                     } else {
                         console.error('Error inserting data into tables. Status:', this.status);
                     }

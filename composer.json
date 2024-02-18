@@ -1,5 +1,7 @@
 {
     "require": {
-        "monolog/monolog": "^2.9"
+        "monolog/monolog": "^2.9",
+        "uestla/simplex-calculator": "^1.0",
+        "php-ai/php-ml": "^0.10.0"
     }
 }

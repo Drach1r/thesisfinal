@@ -138,24 +138,26 @@ function generateSaleID($conn)
                     <label for="customer">Customer Name:</label>
                     <select class="form-control" name="customer" id="customer" required>
                         <option value="" disabled selected>---Select Customer---</option>
-
                         <?php
                         // Fetch customer names from the customers table
                         $customerQuery = $conn->query("SELECT CustomerID, Name FROM customers");
-
                         while ($customerRow = $customerQuery->fetch_assoc()) {
+                            // Skip the placeholder option
+                            if ($customerRow['Name'] === '---Select Customer---') {
+                                continue;
+                            }
                             echo '<option value="' . $customerRow['CustomerID'] . '">' . $customerRow['Name'] . '</option>';
                         }
                         ?>
-
                     </select>
+
                 </div>
             </div>
             <div class="card card-block">
                 <div style="margin: 20px;" class="form-group row">
                     <div class="form-group col-xs-4">
                         <label for="product">Product:</label>
-                        <select class="form-control" name="product_id" id="product_id">
+                        <select class="form-control" name="product_id" id="product_id" required>
                             <option value="" disabled selected>---Select Product---</option>
                             <?php
                             // Fetch products from the product_stock table that have data
