@@ -208,7 +208,7 @@ WHERE (p.actual != 0) AND (m.firstname LIKE '%$search%' OR m.lastname LIKE '%$se
                                             <th>Date</th>
                                             <th>Cooperator</th>
                                             <th>Carabao ID</th>
-                                            <th>Milk Recieved</th>
+                                            <th>Milk Received</th>
 
                                             <th>Action</th>
                                         </tr>
@@ -298,8 +298,8 @@ ON produced.date = max_prod.max_date";
                                             <th>Date</th>
                                             <th>Cooperator</th>
                                             <th>Carabao ID</th>
-                                            <th>Milk Recieved</th>
-                                            <th>Actual Recieved</th>
+                                            <th>Milk Received</th>
+                                            <th>Actual Received</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -398,8 +398,8 @@ ON produced.date = max_prod.max_date";
                                             <th>Date</th>
                                             <th>Cooperator</th>
                                             <th>Carabao ID</th>
-                                            <th>Milk Recieved</th>
-                                            <th>Actual Recieved</th>
+                                            <th>Milk Received</th>
+                                            <th>Actual Received</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>

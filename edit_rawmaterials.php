@@ -92,9 +92,10 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
                 <div class="form-group row">
                     <div class="form-group col-xs-3">
                         <label for="price">Purchase Price:</label>
-                        <input type="number" class="form-control" name="price" id="price" value="<?php echo $existingPrice; ?>" required>
+                        <input type="number" class="form-control" name="price" id="price" value="<?php echo $existingPrice; ?>" required step="any">
                     </div>
                 </div>
+
 
                 <button type="submit" class="btn btn-success">Save Changes</button>
                 <a href="rawmaterials.php" class="btn btn-danger">Back</a>
