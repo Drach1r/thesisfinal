@@ -9,10 +9,11 @@ function insertMilkslipData($conn)
         $member_id = $_POST["member_id"];
         $carabao_id = $_POST["carabao_id"];
         $milkslip = $_POST["milkslip"];
+        $date = $_POST["date"]; // Get the selected date from the form
 
         // Prepare the insert statement for 'produced' table
-        $insertStmt = $conn->prepare("INSERT INTO produced (member_id, carabao_id, milkslip, date) VALUES (?, ?, ?, CURRENT_TIMESTAMP)");
-        $insertStmt->bind_param("iss", $member_id, $carabao_id, $milkslip);
+        $insertStmt = $conn->prepare("INSERT INTO produced (member_id, carabao_id, milkslip, date) VALUES (?, ?, ?, ?)");
+        $insertStmt->bind_param("isss", $member_id, $carabao_id, $milkslip, $date);
 
         // Execute the insert statement
         if ($insertStmt->execute()) {
@@ -27,30 +28,37 @@ function insertMilkslipData($conn)
         return $response;
     }
 }
-
 ?>
 
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
-<article class="content items-list-page">
-    <div class="title-search-block">
-        <div class="title-block">
-            <div class="row">
-                <div class="col-sm-6">
-                    <h3 class="title">
-                        Create Milkslip
-                    </h3>
+<head>
+    <title>Create Milkslip</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+
+<body>
+    <article class="content items-list-page">
+        <div class="title-search-block">
+            <div class="title-block">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <h3 class="title">Create Milkslip</h3>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <body>
         <form name="createProduce" method="POST" action="" onsubmit="return validateForm()">
             <div class="card card-block">
                 <?php echo insertMilkslipData($conn); ?>
+                <div class="row form-group">
+                    <div class="form-group col-xs-4">
+                        <label for="date">Date:</label>
+                        <input type="date" class="form-control" name="date" id="date" required>
+                    </div>
+                </div>
                 <div class="row form-group">
                     <div class="form-group col-xs-4">
                         <label for="member_id">Cooperator:</label>
@@ -81,11 +89,10 @@ function insertMilkslipData($conn)
                     </div>
                 </div>
 
+
                 <div class="form-group">
                     <button type="submit" class="btn btn-success">Submit</button>
-                    <a href="produce.php" class="btn btn-danger">
-                        Back
-                    </a>
+                    <a href="produce.php" class="btn btn-danger">Back</a>
                 </div>
             </div>
         </form>
@@ -118,7 +125,7 @@ function insertMilkslipData($conn)
                 return true;
             }
         </script>
-    </body>
-</article>
+    </article>
+</body>
 
 </html>
