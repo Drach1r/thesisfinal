@@ -272,30 +272,6 @@ function sanitize($data)
         xhr.send();
     });
 
-    document.getElementById('o_quantity').addEventListener('input', function() {
-        var availableQuantity = parseInt(document.getElementById('batch_amount').value) || 0;
-        var quantityMultiplier = parseInt(this.value) || 1;
-        document.getElementById('batch_amount').value = availableQuantity * (quantityMultiplier > 0 ? quantityMultiplier : 1);
-
-        // Update QuantityRequired for each raw material based on the new batch quantity
-        updateQuantityRequired(quantityMultiplier);
-    });
-
-    function updateQuantityRequired(quantityMultiplier) {
-        var quantityCells = document.querySelectorAll('#tablemats td:nth-child(2)'); // Select all cells in the second column (Quantity Required)
-
-        // Loop through each quantity cell and update the displayed quantity
-        quantityCells.forEach(function(quantityCell) {
-            var originalQuantity = parseInt(quantityCell.dataset.originalQuantity) || 0;
-            var updatedQuantity = originalQuantity * quantityMultiplier;
-
-            quantityCell.textContent = updatedQuantity;
-        });
-    }
-
-
-
-
 
     function fetchMaterials(productId) {
         var tableBody = document.getElementById('tablemats');
@@ -371,6 +347,95 @@ function sanitize($data)
     }
 
 
+    // Define a global variable to store availability data
+    var availabilityData = {};
+
+    // Function to check availability
+    function checkAvailability(rawMaterialID, requiredQuantity, availabilityCell) {
+        // Check if availability data for this raw material has been fetched
+        if (availabilityData.hasOwnProperty(rawMaterialID)) {
+            // Use the stored availability data
+            updateAvailabilityDisplay(rawMaterialID, requiredQuantity, availabilityCell);
+        } else {
+            // Fetch availability data asynchronously
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (this.readyState === 4) {
+                    if (this.status === 200) {
+                        var availableQuantity = parseInt(this.responseText);
+                        availabilityData[rawMaterialID] = availableQuantity; // Store availability data
+                        updateAvailabilityDisplay(rawMaterialID, requiredQuantity, availabilityCell);
+                    } else {
+                        console.error('Error checking availability. Status:', this.status);
+                    }
+                }
+            };
+
+            xhr.open('GET', 'check_availability.php?raw_material_id=' + rawMaterialID, true);
+            xhr.send();
+        }
+    }
+
+    // Function to update the availability display
+    function updateAvailabilityDisplay(rawMaterialID, requiredQuantity, availabilityCell) {
+        var availableQuantity = availabilityData[rawMaterialID];
+        console.log("Raw Material ID:", rawMaterialID);
+        console.log("Required Quantity:", requiredQuantity);
+        console.log("Available Quantity:", availableQuantity);
+        // Compare available quantity with required quantity
+        if (availableQuantity >= requiredQuantity) {
+            // Raw material is available
+            availabilityCell.textContent = 'Available';
+            availabilityCell.classList.add('text-success'); // Add a success class for styling
+        } else {
+            // Raw material is not available
+            availabilityCell.textContent = 'Not Available';
+            availabilityCell.classList.add('text-danger'); // Add a danger class for styling
+        }
+    }
+
+
+    function updateQuantityRequired(quantityMultiplier) {
+        var rows = document.querySelectorAll('#tablemats tbody tr');
+        rows.forEach(function(row) {
+            var originalQuantityElement = row.querySelector('td:nth-child(2)');
+            var originalQuantity = parseFloat(originalQuantityElement.dataset.originalQuantity) || 0;
+            var updatedQuantity = originalQuantity * quantityMultiplier;
+            originalQuantityElement.textContent = convertToKgOrL(updatedQuantity, row.dataset.qtyUnit);
+
+            // Log the changes
+            console.log('Original Quantity:', originalQuantity);
+            console.log('Multiplier:', quantityMultiplier);
+            console.log('Updated Quantity:', updatedQuantity);
+
+            // Update the required quantity attribute for further calculations
+            originalQuantityElement.dataset.originalQuantity = updatedQuantity;
+        });
+    }
+    document.getElementById('o_quantity').addEventListener('input', function() {
+        var batchAmountElement = document.getElementById('batch_amount');
+        var availableQuantity = parseInt(batchAmountElement.value) || 0;
+        var quantityMultiplier = parseInt(this.value) || 1;
+        console.log('Available Quantity:', availableQuantity);
+        console.log('Quantity Multiplier:', quantityMultiplier);
+        batchAmountElement.value = availableQuantity * (quantityMultiplier > 0 ? quantityMultiplier : 1);
+
+        // Update availability display for each raw material
+        var rows = document.querySelectorAll('#tablemats tbody tr');
+        rows.forEach(function(row) {
+            var rawMaterialID = row.dataset.rawMaterialId;
+            var requiredQuantity = parseFloat(row.querySelector('td:nth-child(2)').dataset.originalQuantity) * quantityMultiplier;
+            var availabilityCell = row.querySelector('td:nth-child(4)');
+
+            checkAvailability(rawMaterialID, requiredQuantity, availabilityCell);
+        });
+
+        // Call function to update quantity required
+        updateQuantityRequired(quantityMultiplier);
+    });
+
+
+
 
     // Function to convert quantity to Kg or L based on unit
     function convertToKgOrL(quantity, unit) {
@@ -388,64 +453,7 @@ function sanitize($data)
     }
 
 
-    function redirectToReceiving() {
-        window.location.href = 'receiving.php';
-    }
 
-
-    // Function to check availability
-    function checkAvailability(rawMaterialID, requiredQuantity, availabilityCell) {
-        // Make an asynchronous request to check availability from your server
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
-            if (this.readyState === 4) {
-                if (this.status === 200) {
-                    var availableQuantity = parseInt(this.responseText);
-                    console.log("Raw Material ID:", rawMaterialID);
-                    console.log("Required Quantity:", requiredQuantity);
-                    console.log("Available Quantity:", availableQuantity);
-                    // Compare available quantity with required quantity
-                    if (availableQuantity >= requiredQuantity) {
-                        // Raw material is available
-                        availabilityCell.textContent = 'Available';
-                        availabilityCell.classList.add('text-success'); // Add a success class for styling
-                    } else {
-                        // Raw material is not available
-                        availabilityCell.textContent = 'Not Available';
-                        availabilityCell.classList.add('text-danger'); // Add a danger class for styling
-                    }
-                } else {
-                    console.error('Error checking availability. Status:', this.status);
-                }
-            }
-        };
-
-        xhr.open('GET', 'check_availability.php?raw_material_id=' + rawMaterialID, true);
-        xhr.send();
-    }
-
-    function checkAllAvailability() {
-        var availabilityCells = document.querySelectorAll('#tablemats td:nth-child(4)'); // Select all cells in the fifth column (Availability)
-
-        var allAvailable = true; // Flag to track if all materials are available
-
-        // Loop through each availability cell to check if any material is not available
-        availabilityCells.forEach(function(availabilityCell) {
-            if (availabilityCell.textContent.trim().toLowerCase() !== 'available') {
-                // Raw material is not available
-                allAvailable = false;
-            }
-        });
-
-        if (!allAvailable) {
-            // If any material is not available, prevent form submission and provide a message to the user
-            alert('Not all materials are available. Please check availability.');
-            return false; // Prevent form submission
-        } else {
-            // If all materials are available, allow form submission
-            return true; // Allow form submission
-        }
-    }
 
 
 

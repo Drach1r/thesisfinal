@@ -137,10 +137,10 @@ WHERE (p.actual != 0) AND (m.firstname LIKE '%$search%' OR m.lastname LIKE '%$se
     INNER JOIN member m ON p.member_id = m.id
     LEFT JOIN carabaos c ON p.carabao_id = c.id
     WHERE p.actual IS NULL OR p.actual = 0
-    ORDER BY p.date DESC";
-
+    ORDER BY p.transaction_id DESC";
 
     $result = mysqli_query($conn, $query);
+
 
     // Check for errors in the query
     if (!$result) {

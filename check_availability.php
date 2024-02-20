@@ -27,11 +27,8 @@ if (isset($_GET['raw_material_id'])) {
         $stmt->bind_result($availableQuantity);
 
         if ($stmt->fetch()) {
-            // Convert available quantity from kg to g
-            $availableQuantityInGrams = $availableQuantity * 1000;
-
-            // Respond with the calculated available quantity in grams
-            echo max(0, $availableQuantityInGrams); // Ensure the result is non-negative
+            // Respond with the calculated available quantity
+            echo max(0, $availableQuantity); // Ensure the result is non-negative
         } else {
             // If the raw material is not found, you may want to handle it appropriately
             echo 0;

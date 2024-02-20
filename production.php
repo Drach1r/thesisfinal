@@ -215,21 +215,36 @@ include 'sidebar.php';
     // Calculate total pages
     $totalPages = ceil($totalRecords / $limit);
 
-
-
     // Handle form submissions for 'instock' table
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] == 'delete') {
         // Ensure the order_id is set and not empty
         if (isset($_POST['order_id']) && !empty($_POST['order_id']) && isset($_GET['table']) && $_GET['table'] === 'instock') {
             $order_id = $_POST['order_id'];
-
-            // Delete corresponding data in 'stock' table based on matching criteria
-            $deleteStockQuery = "DELETE FROM stock WHERE RawMaterialID IN (SELECT RawMaterialID FROM manufacturing_mat WHERE order_id = ? AND stock_out = issued_quantity) LIMIT 1";
+            // Delete from stock table
+            $deleteStockQuery = "
+            DELETE s
+            FROM stock s
+            INNER JOIN manufacturing_mat mm ON s.RawMaterialID = mm.RawMaterialID
+            INNER JOIN manufacturing_orders mo ON mm.order_id = mo.order_id
+            WHERE mm.order_id = ? 
+            AND s.stock_out = mm.issued_quantity
+            AND s.transaction_date = mo.o_date
+        ";
             $deleteStockStatement = $conn->prepare($deleteStockQuery);
+            if (!$deleteStockStatement) {
+                die('Error preparing query: ' . $conn->error);
+            }
             $deleteStockStatement->bind_param("s", $order_id);
-            $deleteStockStatement->execute();
+            if (!$deleteStockStatement->execute()) {
+                die('Error executing query: ' . $deleteStockStatement->error);
+            }
+            // Check if any rows were affected
+            if ($deleteStockStatement->affected_rows > 0) {
+                echo "Rows deleted successfully.";
+            } else {
+                echo "No rows deleted.";
+            }
             $deleteStockStatement->close();
-
             // Specify the table name for the deletion query (product_stock)
             $productStockTable = 'product_stock'; // Change this to the correct table name
 

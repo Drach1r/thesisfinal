@@ -71,14 +71,14 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
                             <select class="form-control" name="member_id" id="member_id" required>
                                 <option value=""> --- SELECT ---</option>
                                 <?php
-                                $members = $conn->query("SELECT * FROM member ORDER BY id");
+                                $members = $conn->query("SELECT * FROM member ORDER BY lastname ASC"); // Order by last name alphabetically
                                 while ($row = $members->fetch_assoc()) {
                                     echo '<option value="' . $row['id'] . '">' . $row['lastname'] . ', ' . $row['firstname'] . ' - ' . $row['carabao'] . '</option>';
                                 }
                                 ?>
                             </select>
-
                         </div>
+
                     </div>
 
                     <div class="row form-group">
