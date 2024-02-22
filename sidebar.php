@@ -262,12 +262,17 @@ $allowedLinks = array(
 
                     <li>
                         <a href="payroll.php">
-                            <i class="fa fa-clipboard"></i> Payroll
+                            <i class="fa fa-clipboard"></i> Payments
                         </a>
                     </li>
                     <li>
                         <a href="employee.php">
                             <i class="fa fa-clipboard"></i> Employee
+                        </a>
+                    </li>
+                    <li>
+                        <a href="bills.php">
+                            <i class="fa fa-clipboard"></i> Bills
                         </a>
                     </li>
                 <?php endif; ?>
@@ -324,6 +329,11 @@ $allowedLinks = array(
                     <li>
                         <a href="employee.php">
                             <i class="fa fa-clipboard"></i> Employee
+                        </a>
+                    </li>
+                    <li>
+                        <a href="bills.php">
+                            <i class="fa fa-clipboard"></i> Bills
                         </a>
                     </li>
                     <li class="">

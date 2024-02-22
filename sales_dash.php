@@ -128,35 +128,43 @@ include 'sidebar.php';
         </div>
     </div>
 
-
-    <div class="col col-xs-12 col-sm-12 col-md-6 col-xl-7 history-col">
+    <div class="col col-xs-12 col-sm-12 col-md-6 col-xl-7 history-col" style=" margin-top: 60px;">
         <div class="card sameheight-item" data-exclude="xs">
             <div class="card-header card-header-sm bordered">
                 <div class="header-block">
-                    <h3 class="title">Sales </h3>
+                    <h3 class="title">Sales</h3>
                 </div>
                 <ul class="nav nav-tabs pull-right" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#dashboard-monthly-chart" role="tab" data-toggle="tab">Monthly</a>
+                        <a class="nav-link active" href="#dashboard-monthly-chart" role="tab" data-toggle="tab"> All Sales Data</a>
                     </li>
+
                 </ul>
             </div>
+
             <div class="card-block">
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active fade in" id="dashboard-monthly-chart">
                         <p class="title-description">
-                            Sales Results last 30 days
+
                         </p>
                         <div id="dashboard-monthly-chart"></div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane fade" id="all-sales-chart">
+                        <p class="title-description">
+                            All Sales Data
+                        </p>
+                        <div id="all-sales-chart-data"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+
     <section class="section">
         <div class="row">
-            <div class="card col-lg-5" style="height: 500px;">
+            <div class="card col-lg-5" style="height: 500px; margin-top: 60px;">
                 <div class="card-body">
                     <div class="card-body">
 
@@ -181,7 +189,99 @@ include 'sidebar.php';
         </div>
     </section>
 
+
     <script>
+        $(document).ready(function() {
+            // Function to fetch monthly sales data from the server
+            function fetchMonthlySalesData() {
+                $.ajax({
+                    url: 'monthly_chart.php', // Path to monthly sales data script
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Update the Morris Line Chart with the fetched data
+                            updateMonthlyChart(response.data);
+                        } else {
+                            console.error(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error fetching monthly sales data:", error);
+                    }
+                });
+            }
+
+            // Function to fetch all sales data from the server
+            // Function to fetch all sales data from the server
+            function fetchAllSalesData() {
+                $.ajax({
+                    url: 'all_sales_chart.php', // Path to total sales data script
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Update the Morris Line Chart with the fetched data
+                            updateTotalSalesChart(response.data);
+                        } else {
+                            console.error(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error fetching all sales data:", error);
+                    }
+                });
+            }
+
+            // Initial fetch and chart update for monthly sales
+            fetchMonthlySalesData();
+
+            // Function to update the Morris Line Chart for monthly sales with new data
+            function updateMonthlyChart(data) {
+                Morris.Line({
+                    element: 'dashboard-monthly-chart',
+                    data: data,
+                    xkey: 'y',
+                    ykeys: ['a'],
+                    labels: ['Sales'],
+                    lineColors: ['#3c8dbc'],
+                    parseTime: false,
+                    hideHover: 'auto',
+                    resize: true,
+                    pointSize: 6,
+                    gridTextSize: 12,
+                    gridTextFamily: 'Arial, sans-serif',
+                    gridTextSpacing: 50,
+                });
+            }
+
+            // Function to update the Morris Line Chart for total sales with new data
+            function updateTotalSalesChart(data) {
+                Morris.Line({
+                    element: 'all-sales-chart', // Element ID for the total sales chart
+                    data: data,
+                    xkey: 'y',
+                    ykeys: ['a'],
+                    labels: ['Total Sales'],
+                    lineColors: ['#3c8dbc'], // Line color
+                    parseTime: false,
+                    hideHover: 'auto', // Hide tooltip on hover
+                    resize: true, // Enable chart resizing
+                    pointSize: 6, // Point size
+                    gridTextSize: 12, // Grid text size
+                    gridTextFamily: 'Arial, sans-serif', // Grid text family
+                    gridTextSpacing: 50, // Grid text spacing
+                });
+            }
+
+            // Add event listener to the "All Sales" tab link
+            $('#all-sales-tab').click(function(e) {
+                e.preventDefault(); // Prevent default link behavior
+
+                // Fetch all sales data and update the total sales chart
+                fetchAllSalesData();
+            });
+        });
         $(document).ready(function() {
             // Fetch and display product data
             $.ajax({
@@ -262,49 +362,6 @@ include 'sidebar.php';
                 console.log('Before Plotting:', data);
                 $.plot($("#flot-pie-chart"), data, options);
                 console.log('After Plotting:', data);
-            }
-        });
-        $(document).ready(function() {
-            // Function to fetch monthly sales data from the server
-            function fetchMonthlySalesData() {
-                $.ajax({
-                    url: 'monthly_chart.php', // Replace with the actual path to your server script
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            // Update the Morris Line Chart with the fetched data
-                            updateMonthlyChart(response.data);
-                        } else {
-                            console.error(response.message);
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Error fetching monthly sales data:", error);
-                    }
-                });
-            }
-
-            // Initial fetch and chart update
-            fetchMonthlySalesData();
-
-            // Function to update the Morris Line Chart with new data
-            function updateMonthlyChart(data) {
-                Morris.Line({
-                    element: 'dashboard-monthly-chart',
-                    data: data,
-                    xkey: 'y',
-                    ykeys: ['a'],
-                    labels: ['Sales'],
-                    lineColors: ['#3c8dbc'],
-                    parseTime: false,
-                    hideHover: 'auto',
-                    resize: true,
-                    pointSize: 6,
-                    gridTextSize: 12,
-                    gridTextFamily: 'Arial, sans-serif',
-                    gridTextSpacing: 50,
-                });
             }
         });
     </script>

@@ -111,6 +111,38 @@ ON produced.date = max_prod.max_date";
     </div>
 
     <?php
+    // Assuming you have a connection to the database in db_connect.php
+
+    $query = "SELECT SUM(actual) AS total_milk_received FROM produced";
+
+    $result = mysqli_query($conn, $query);
+
+    if ($result) {
+        $row = mysqli_fetch_assoc($result);
+        $totalMilkReceived = $row['total_milk_received'];
+    } else {
+        // Handle the error if the query fails
+        $totalMilkReceived = "Error fetching total milk received";
+    }
+    ?>
+
+    <div class="col-xl-3 col-md-4 mb-4 ">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Milk Received</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $totalMilkReceived; ?>L</div>
+                    </div>
+                    <i class="fa-solid fa-bottle-droplet" style="font-size: 1em;"></i>
+                    <div class="col-auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <?php
 
     $queryPurchases = "SELECT SUM(p_amount) AS total_purchase_amount FROM purchases WHERE MONTH(PurchaseDate) = MONTH(CURRENT_DATE())";
     $resultPurchases = mysqli_query($conn, $queryPurchases);
@@ -141,18 +173,25 @@ ON produced.date = max_prod.max_date";
 
 
     <?php
+    // Assuming you have a connection to the database in db_connect.php
 
-    $queryCustomers = "SELECT COUNT(CustomerID) AS customer_count FROM customers";
-    $resultCustomers = mysqli_query($conn, $queryCustomers);
+    // Query to get the total count of raw materials
+    $query = "SELECT COUNT(RawMaterialID) AS rawmaterial_count FROM rawmaterials";
 
-    if ($resultCustomers) {
-        $rowCustomers = mysqli_fetch_assoc($resultCustomers);
-        $customerCount = $rowCustomers['customer_count'];
+    // Execute the query
+    $result = mysqli_query($conn, $query);
+
+    if ($result) {
+        // Fetch the result row as an associative array
+        $row = mysqli_fetch_assoc($result);
+        // Extract the raw material count from the result
+        $rawMaterialsTotal = $row['rawmaterial_count'];
     } else {
         // Handle the error if the query fails
-        $customerCount = "Error fetching customer count";
+        $rawMaterialsTotal = "Error fetching raw material count";
     }
     ?>
+
     <div class="col-xl-3 col-md-4 mb-4">
 
         <div class="card border-left-info shadow h-100 py-2">
@@ -160,7 +199,45 @@ ON produced.date = max_prod.max_date";
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Rawmaterials</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $customerCount; ?></div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $rawMaterialsTotal; ?></div>
+                    </div>
+                    <i class="fa-solid fa-pen-clip" style="font-size: 1em;"></i>
+                    <div class="col-auto"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <?php
+    // Assuming you have a connection to the database in db_connect.php
+
+    // Query to get the total count of products
+    $query = "SELECT COUNT(ProductID) AS product_count FROM productlist";
+
+    // Execute the query
+    $result = mysqli_query($conn, $query);
+
+    if ($result) {
+        // Fetch the result row as an associative array
+        $row = mysqli_fetch_assoc($result);
+        // Extract the product count from the result
+        $totalProducts = $row['product_count'];
+    } else {
+        // Handle the error if the query fails
+        $totalProducts = "Error fetching product count";
+    }
+    ?>
+
+    <div class="col-xl-3 col-md-4 mb-4">
+
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Products</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $totalProducts; ?></div>
                     </div>
                     <i class="fa-solid fa-pen-clip" style="font-size: 1em;"></i>
                     <div class="col-auto"></div>
@@ -183,6 +260,8 @@ ON produced.date = max_prod.max_date";
         $salesCount = "Error fetching sales count";
     }
     ?>
+
+
     <div class="col-xl-3 col-md-4 mb-4">
 
         <div class="card border-left-warning shadow h-100 py-2">
@@ -199,48 +278,71 @@ ON produced.date = max_prod.max_date";
         </div>
 
     </div>
-    <?php
 
 
-    // SQL query to retrieve the most popular products based on sales items
-    $query = "SELECT ProductID, COUNT(*) AS total_sales
-          FROM salesitems
-          GROUP BY ProductID
-          ORDER BY total_sales DESC";
 
-    // Execute the query
-    $result = mysqli_query($conn, $query);
+    <section class="">
+        <div class="card col-lg-5" style=" margin-top: 60px;">
+            <div class="card-body">
+                <div class="card-body">
+                    <div class="card-title-body">
+                        <br>
+                        <table class="table table-bordered col-md-12">
+                            <h4>Most Popular Product:</h4>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Product Name</th>
+                                <th>Total Sales</th>
+                                <th>Total Quantity</th>
 
-    // Check if the query was successful
-    if ($result) {
-    ?>
-        <table>
-            <tr>
-                <th>Product ID</th>
-                <th>Total Sales</th>
-            </tr>
-            <?php
-            // Fetch and display the results
-            while ($row = mysqli_fetch_assoc($result)) {
-                echo "<tr>";
-                echo "<td>" . $row['ProductID'] . "</td>";
-                echo "<td>" . $row['total_sales'] . "</td>";
-                echo "</tr>";
-            }
-            ?>
-        </table>
-        </body>
+                            </tr>
 
-        </html>
-    <?php
-    } else {
-        // Handle the error if the query fails
-        echo "Error: " . mysqli_error($conn);
-    }
+                            <?php
+                            // SQL query to retrieve the most popular products based on sales items
+                            $query = "SELECT p.Name, COUNT(*) AS total_sales, SUM(s.Quantity) AS total_quantity
+              FROM salesitems s
+              JOIN productlist p ON s.ProductID = p.ProductID
+              GROUP BY s.ProductID
+              ORDER BY total_sales DESC";
 
-    // Close the database connection
-    mysqli_close($conn);
-    ?>
+                            // Execute the query
+                            $result = mysqli_query($conn, $query);
+
+                            // Check if the query was successful
+                            if ($result) {
+                                // Initialize rank counter
+                                $rank = 1;
+                                // Fetch and display the results
+                                while ($row = mysqli_fetch_assoc($result)) {
+                                    echo "<tr>";
+                                    // Display the rank number
+                                    echo "<td>" . $rank++ . "</td>";
+                                    echo "<td>" . $row['Name'] . "</td>";
+                                    echo "<td>" . $row['total_sales'] . "</td>";
+                                    echo "<td>" . $row['total_quantity'] . "</td>";
+
+                                    echo "</tr>";
+                                }
+                            } else {
+                                // Handle the error if the query fails
+                                echo "<tr>
+                <td colspan='5'>Error: " . mysqli_error($conn) . "</td>
+            </tr>";
+                            }
+
+                            // Close the database connection
+                            mysqli_close($conn);
+                            ?>
+                        </table>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
 
     <br>
 </article>
