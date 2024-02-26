@@ -172,6 +172,12 @@ $allowedLinks = array(
                         </ul>
                     </li>
 
+                    <li class="">
+                        <a href="optimization.php">
+                            <i class="fa fa-group"></i> Optimization
+                        </a>
+                    </li>
+
 
 
                 <?php endif; ?>
