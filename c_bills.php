@@ -21,29 +21,32 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
         </div>
         <?php
         include 'db_connect.php';
+        function insertbillsData($conn)
+        {
 
-        // Check if the form is submitted
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            // Retrieve data from the form
-            $date = $_POST['date'];
-            $name = $_POST['name']; // Added line to retrieve name from the form
-            $amount = $_POST['amount'];
+            if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-            // SQL query to insert data into bills table
-            $sql = "INSERT INTO bills (date, name, amount) VALUES ('$date', '$name', '$amount')"; // Modified to include name
+                $date = $_POST['date'];
+                $bill_id = $_POST['bill_id'];
+                $amount = $_POST['amount'];
 
-            // Execute the query
-            if (mysqli_query($conn, $sql)) {
-                // Display success alert
-                echo "<div class='alert alert-success' role='alert'>New record created successfully</div>";
-            } else {
-                // Display error alert
-                echo "<div class='alert alert-danger' role='alert'>Error: " . $sql . "<br>" . mysqli_error($conn) . "</div>";
+
+                $insertStmt = $conn->prepare("INSERT INTO bill_records (date, bill_id, amount) VALUES (?, ?, ?)");
+                $insertStmt->bind_param("sss", $date, $bill_id, $amount);
+
+
+                if ($insertStmt->execute()) {
+
+                    echo "<div class='alert alert-success' role='alert'>New record created successfully</div>";
+                } else {
+                    // Display error alert
+                    echo "<div class='alert alert-danger' role='alert'>Error: " .  $insertStmt->error . "</div>";
+                }
+
+                $insertStmt->close();
             }
-
-            // Close the database connection
-            mysqli_close($conn);
         }
+        insertbillsData($conn);
         ?>
 
 
@@ -59,8 +62,16 @@ checkUserTypeAccess($allowedUserTypes, 'login.php', 'You are not allowed to acce
 
                     <div class="row form-group">
                         <div class="form-group col-xs-4">
-                            <label for="name">Bill For:</label>
-                            <input type="text" class="form-control" name="name" id="name" placeholder="Enter Name " required>
+                            <label for="bill_id">Bill Name:</label>
+                            <select class="form-control" name="bill_id" id="bill_id" required>
+                                <option value=""> --- SELECT ---</option>
+                                <?php
+                                $members = $conn->query("SELECT * FROM bills ORDER BY bill_id ASC"); // Order by last name alphabetically
+                                while ($row = $members->fetch_assoc()) {
+                                    echo '<option value="' . $row['bill_id'] . '">' . $row['bill_name'] . '</option>';
+                                }
+                                ?>
+                            </select>
                         </div>
                     </div>
 

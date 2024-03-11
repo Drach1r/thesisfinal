@@ -463,9 +463,8 @@ ON produced.date = max_prod.max_date";
 
         </div>
     </section>
-
     <section class="">
-        <div class="card col-lg-5" style="margin-top: 10px; ">
+        <div class="card col-lg-5" style="margin-top: 10px;">
             <div class="card-body">
                 <div class="card-body">
                     <div class="card-title-body">
@@ -481,16 +480,13 @@ ON produced.date = max_prod.max_date";
                             </tr>
 
                             <?php
-                            // SQL query to retrieve the most popular products based on sales items and their prices
                             $query = "SELECT p.Name, COUNT(*) AS total_sales, SUM(s.Quantity) AS total_quantity, s.price
-          FROM salesitems s
-          JOIN productlist p ON s.ProductID = p.ProductID
-          GROUP BY s.ProductID
-          ORDER BY total_sales DESC";
-
+                                    FROM salesitems s
+                                    JOIN productlist p ON s.ProductID = p.ProductID
+                                    GROUP BY s.ProductID
+                                    ORDER BY total_sales DESC";
                             // Execute the query
                             $result = mysqli_query($conn, $query);
-
                             // Check if the query was successful
                             if ($result) {
                                 // Initialize rank counter
@@ -513,21 +509,19 @@ ON produced.date = max_prod.max_date";
                             } else {
                                 // Handle the error if the query fails
                                 echo "<tr>
-        <td colspan='5'>Error: " . mysqli_error($conn) . "</td>
-    </tr>";
+                                    <td colspan='5'>Error: " . mysqli_error($conn) . "</td>
+                                </tr>";
                             }
-
                             // Close the database connection
                             mysqli_close($conn);
                             ?>
                         </table>
-
-
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
 
 
     <script>

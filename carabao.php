@@ -26,7 +26,7 @@ if (isset($_GET['delete'])) {
 }
 
 // Pagination and Search logic
-$limit = 5; // Number of results per page
+$limit = 10; // Number of results per page
 $page = isset($_GET['page']) ? $_GET['page'] : 1; // Current page, default is 1
 $offset = ($page - 1) * $limit; // Offset for the SQL query
 
@@ -56,6 +56,9 @@ $totalRowsResult = mysqli_query($conn, $totalRowsQuery);
 // Check if the query was successful before fetching the result
 if ($totalRowsResult) {
     $totalRows = mysqli_fetch_assoc($totalRowsResult)['total'];
+
+    // Calculate the total number of pages
+    $totalPages = ceil($totalRows / $limit);
 }
 
 ?>
@@ -137,20 +140,21 @@ if ($totalRowsResult) {
                         <ul class="pagination justify-content-center">
                             <div class="pagination">
                                 <?php
-                                // Previous page link
+
                                 if ($page > 1) {
                                     echo "<li class='page-item'><a class='page-link' href='?page=" . ($page - 1) . "'>&laquo; Previous</a></li>";
                                 } else {
                                     echo "<li class='page-item disabled'><span class='page-link'>&laquo; Previous</span></li>";
                                 }
 
-                                // Page links
-                                for ($i = 1; $i <= ceil($totalRows / $limit); $i++) {
-                                    echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i'>$i</a></li>";
+
+                                for ($i = 1; $i <= $totalPages; $i++) {
+                                    if ($i == $page) {
+                                        echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i'>$i</a></li>";
+                                    }
                                 }
 
-                                // Next page link
-                                if ($page < ceil($totalRows / $limit)) {
+                                if ($page < $totalPages) {
                                     echo "<li class='page-item'><a class='page-link' href='?page=" . ($page + 1) . "'>Next &raquo;</a></li>";
                                 } else {
                                     echo "<li class='page-item disabled'><span class='page-link'>Next &raquo;</span></li>";

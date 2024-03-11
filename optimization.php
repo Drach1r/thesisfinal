@@ -442,7 +442,7 @@ include 'db_connect.php';
                                                 <?php
                                                 // Query to fetch the total amount for other constraints (latest bill amount for each name)
                                                 $sql = "SELECT SUM(amount) AS total FROM (
-                    SELECT MAX(amount) AS amount FROM bills GROUP BY name
+                    SELECT MAX(amount) AS amount FROM bill_records GROUP BY bill_id
                 ) AS subquery";
 
                                                 // Execute the query
@@ -462,7 +462,7 @@ include 'db_connect.php';
                                             <td style="background-color: skyblue; "> <?php
                                                                                         // Query to fetch the total amount for other constraints (latest bill amount for each name)
                                                                                         $sql = "SELECT SUM(amount) AS total FROM (
-                    SELECT MAX(amount) AS amount FROM bills GROUP BY name
+                    SELECT MAX(amount) AS amount FROM bill_records GROUP BY bill_id
                 ) AS subquery";
 
                                                                                         // Execute the query
@@ -527,7 +527,7 @@ include 'db_connect.php';
 
                                         <?php
                                         // Query to fetch bills from the bills table
-                                        $sql = "SELECT * FROM bills WHERE name = 'Electric bill' ORDER BY date DESC LIMIT 1";
+                                        $sql = "SELECT * FROM bill_records  ORDER BY date DESC LIMIT 1";
 
                                         // Execute the query
                                         $result = mysqli_query($conn, $sql);
@@ -557,7 +557,7 @@ include 'db_connect.php';
                                         <th>WATER</th>
                                         <?php
                                         // Query to fetch bills from the bills table
-                                        $sql = "SELECT * FROM bills WHERE name = 'Water bill' ORDER BY date DESC LIMIT 1";
+                                        $sql = "SELECT * FROM bill_records  ORDER BY date DESC LIMIT 1";
 
                                         // Execute the query
                                         $result = mysqli_query($conn, $sql);

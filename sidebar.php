@@ -277,9 +277,25 @@ $allowedLinks = array(
                         </a>
                     </li>
                     <li>
-                        <a href="bills.php">
-                            <i class="fa fa-clipboard"></i> Bills
+
+                        <a href="">
+                            <i class="fa fa-clipboard"></></i> Bills
+                            <i class="fa arrow"></i>
                         </a>
+                        <ul>
+                            <li class="">
+                                <a href="create_bills.php">
+                                    <i class="fa fa-clipboard"></i>
+                                    Create Bill
+                                </a>
+                            </li>
+                            <li class="">
+                                <a href="bills.php">
+                                    <i class="fa fa-clipboard"></i> Pay Bills
+                                </a>
+                            </li>
+
+                        </ul>
                     </li>
                 <?php endif; ?>
                 <?php if ($userType == 5) : ?>

@@ -22,9 +22,13 @@ $totalRowsQuery = "SELECT COUNT(*) as total FROM member WHERE firstname LIKE '%$
 
 $totalRowsResult = mysqli_query($conn, $totalRowsQuery);
 
+
 // Check if the query was successful before fetching the result
 if ($totalRowsResult) {
   $totalRows = mysqli_fetch_assoc($totalRowsResult)['total'];
+
+  // Calculate the total number of pages
+  $totalPages = ceil($totalRows / $limit);
 }
 
 // Original query for the table with pending members (unchanged)
@@ -184,20 +188,21 @@ if (!$pendingResult) {
             <nav class="text-xs-center">
               <ul class="pagination justify-content-center">
                 <?php
-                // Previous page link
                 if ($page > 1) {
                   echo "<li class='page-item'><a class='page-link' href='?page=" . ($page - 1) . "'>&laquo; Previous</a></li>";
                 } else {
                   echo "<li class='page-item disabled'><span class='page-link'>&laquo; Previous</span></li>";
                 }
 
-                // Page links
-                for ($i = 1; $i <= ceil($totalRows / $limit); $i++) {
-                  echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i'>$i</a></li>";
+                // Display pagination links
+                for ($i = 1; $i <= $totalPages; $i++) {
+                  if ($i == $page) {
+                    echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i'>$i</a></li>";
+                  }
                 }
 
-                // Next page link
-                if ($page < ceil($totalRows / $limit)) {
+                // Display "Next" link
+                if ($page < $totalPages) {
                   echo "<li class='page-item'><a class='page-link' href='?page=" . ($page + 1) . "'>Next &raquo;</a></li>";
                 } else {
                   echo "<li class='page-item disabled'><span class='page-link'>Next &raquo;</span></li>";

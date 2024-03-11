@@ -104,21 +104,9 @@ WHERE (p.actual != 0) AND (m.firstname LIKE '%$search%' OR m.lastname LIKE '%$se
                 $alterStockStmt->execute();
                 $alterStockStmt->close();
 
-                // Update the rawmilk table
-                $updateRawMilkStmt = $conn->prepare("UPDATE rawmilk SET daily_total = daily_total - ? WHERE DATE(transaction_day) = ?");
-                $updateRawMilkStmt->bind_param("is", $actualValue, $deleteDate);
-
-                if ($updateRawMilkStmt->execute()) {
-                    $updateRawMilkStmt->close();
-                    $deleteProducedStmt->close();
-                    $deleteStockStmt->close();
-                    return true;
-                } else {
-                    $updateRawMilkStmt->close();
-                    $deleteProducedStmt->close();
-                    $deleteStockStmt->close();
-                    return false;
-                }
+                $deleteProducedStmt->close();
+                $deleteStockStmt->close();
+                return true;
             } else {
                 $deleteProducedStmt->close();
                 $deleteStockStmt->close();
@@ -131,6 +119,7 @@ WHERE (p.actual != 0) AND (m.firstname LIKE '%$search%' OR m.lastname LIKE '%$se
             return false;
         }
     }
+
 
     $query = "SELECT p.transaction_id, p.member_id, m.firstname, m.lastname, p.carabao_id, c.name AS carabaoName, p.milkslip, p.actual, p.date
     FROM produced p
@@ -460,22 +449,25 @@ LIMIT $limit OFFSET $offset";
                                     $totalRows = mysqli_fetch_assoc($totalPagesResult)['total'];
                                     $totalPages = ceil($totalRows / $limit);
 
-                                    // Previous page link
-                                    echo "<li class='page-item " . ($page == 1 ? 'disabled' : '') . "'>
-                <a class='page-link' href='?page=" . max(1, $page - 1) . "'>Prev</a>
-            </li>";
-
-                                    // Page links
-                                    for ($i = 1; $i <= $totalPages; $i++) {
-                                        echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'>
-                    <a class='page-link' href='?page=$i'>$i</a>
-                </li>";
+                                    if ($page > 1) {
+                                        echo "<li class='page-item'><a class='page-link' href='?page=" . ($page - 1) . "'>&laquo; Previous</a></li>";
+                                    } else {
+                                        echo "<li class='page-item disabled'><span class='page-link'>&laquo; Previous</span></li>";
                                     }
 
-                                    // Next page link
-                                    echo "<li class='page-item " . ($page == $totalPages ? 'disabled' : '') . "'>
-                <a class='page-link' href='?page=" . min($totalPages, $page + 1) . "'>Next</a>
-            </li>";
+                                    // Display pagination links
+                                    for ($i = 1; $i <= $totalPages; $i++) {
+                                        if ($i == $page) {
+                                            echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i'>$i</a></li>";
+                                        }
+                                    }
+
+                                    // Display "Next" link
+                                    if ($page < $totalPages) {
+                                        echo "<li class='page-item'><a class='page-link' href='?page=" . ($page + 1) . "'>Next &raquo;</a></li>";
+                                    } else {
+                                        echo "<li class='page-item disabled'><span class='page-link'>Next &raquo;</span></li>";
+                                    }
                                     ?>
                                 </ul>
                             </nav>
